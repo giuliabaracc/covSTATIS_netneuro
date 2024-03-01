@@ -1,7 +1,5 @@
 ---
 title: "covSTATIS vignette"
-author: "Jenny Rieck & Giulia Baracchini"
-date: '2024-02-01'
 output: html_document
 ---
 
@@ -21,32 +19,14 @@ library(ggplot2)
 
 # Setup
 
-## Retrieve data from OSF
-
-```{r, eval = FALSE}
-## Atlas .csv file with ROI labels for the Schaefer 100 parcel by 17 networks atlas
-osf_retrieve_node("https://osf.io/dm23b/") %>%
-  osf_ls_files(pattern = "Schaefer_100") %>%
-  osf_download(path = "../Data", conflicts = "overwrite")
-
-## Participant info (we'll need IDs later to compute task condition differentiation scores)
-osf_retrieve_node("https://osf.io/dm23b/") %>%
-  osf_ls_files(pattern = "participant_ages") %>%
-  osf_download(path = "../Data", conflicts = "overwrite")
-
-## Functional connectivity data files for n-back (one .txt per subject per n-back load)
-#### JR comment: osf_ls_files() doesn't grab all the filenames? and grabs duplicates?? 
-osf_retrieve_node("https://osf.io/hnj7s/") %>%
-  osf_ls_files(n_max = 432, pattern = "back.txt") %>%
-  osf_download(path = "../Data", conflicts = "overwrite")
-
-```
+Retrieve data from OSF. Download nback (0-,1-,2-back) data from: https://osf.io/hnj7s/. You should have 144x3 txt files (nx3 task conditions). Make sure to download the following csv file "participants_ages.csv" as well from: https://osf.io/dm23b/. Make sure txt files, participant info and the atlas labels csv files are stored in the Data folder. 
 
 ## Read in the data
 
 The first step is to read in our connectivity matrices to form a 3D array (= 'X' here below) for analysis with covSTATIS. In this vignette the 3D array dimensionality is 100 x 100 x 99 (ROI x ROI x N participants) per task condition (3 in total). 
 
 ```{r}
+setwd('./../Data/')
 atlas_prefix <- "Schaefer100_17"
 atlas_labels <- read_csv('Schaefer_100parcel_17network_labels.csv')
 demog_in <- read_csv('participant_ages.csv')
@@ -249,8 +229,8 @@ for(i in 1:length(ids)){
   }
 }
 
-print(task_diff_network_level)
-#### Eg lets see individual sub-network (DMN A) task differentiation scores
+#print(task_diff_network_level) #you can go ahead and save this output and relate it to e.g., behavior
+#### Eg lets see individual sub-network (DMN A) task differentiation scores and how they change with age
 plot(x = demog_in$Age, y = (task_diff_network_level$DMN.A),
      xlab='Age', ylab = 'Task Differentiation', main='Default A')
 ```
