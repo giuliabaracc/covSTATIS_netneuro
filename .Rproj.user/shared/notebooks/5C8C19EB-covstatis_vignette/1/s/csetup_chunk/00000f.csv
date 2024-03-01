@@ -1,0 +1,57 @@
+"0","knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)"
+"2","Warning message:
+"
+"2","In file.info(path, extra_cols = FALSE) :"
+"2","
+ "
+"2"," cannot open file 'C:/Users/juchi/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.8_qbz5n2kfra8p0/python.exe': The file cannot be accessed by the system
+"
+"0","library(tidyr)"
+"2","Warning: package ‘tidyr’ was built under R version 4.1.3"
+"0","library(dplyr)"
+"2","Warning: package ‘dplyr’ was built under R version 4.1.3"
+"2","
+Attaching package: ‘dplyr’
+
+"
+"2","The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+"
+"0","library(osfr)"
+"2","Warning: package ‘osfr’ was built under R version 4.1.3"
+"0","library(readr)"
+"2","Warning: package ‘readr’ was built under R version 4.1.3"
+"0","library(DistatisR)  # covSTATIS analysis"
+"0","library(PTCA4CATA)  # factor map plotting"
+"2","
+Attaching package: ‘PTCA4CATA’
+
+"
+"2","The following objects are masked from ‘package:DistatisR’:
+
+    ldiag, rdiag
+
+"
+"0","library(ExPosition) # makeDataNominal()"
+"2","Loading required package: prettyGraphs
+"
+"0","library(gplots) #heatmap.2()"
+"2","Warning: package ‘gplots’ was built under R version 4.1.3"
+"2","
+Attaching package: ‘gplots’
+
+"
+"2","The following object is masked from ‘package:stats’:
+
+    lowess
+
+"
+"0","library(sp)         #convex hulls in compute_task_diff()"
+"0","library(ggplot2)"
