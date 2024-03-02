@@ -26,14 +26,14 @@ Retrieve data from OSF. Download nback (0-,1-,2-back) data from: https://osf.io/
 The first step is to read in our connectivity matrices to form a 3D array (= 'X' here below) for analysis with covSTATIS. In this vignette the 3D array dimensionality is 100 x 100 x 99 (ROI x ROI x N participants) per task condition (3 in total). 
 
 ```{r}
-setwd('./../Data/')
+setwd('../Data/')
 atlas_prefix <- "Schaefer100_17"
-atlas_labels <- read_csv('Schaefer_100parcel_17network_labels.csv')
-demog_in <- read_csv('participant_ages.csv')
+atlas_labels <- read_csv('../Data/Schaefer_100parcel_17network_labels.csv')
+demog_in <- read_csv('../Data/participant_ages.csv')
 ids <- demog_in$subjectID
 
 ## Read in FC .txt files and reshape into 3D array with size n_roi x n_roi x n_sub*n_conditions (i.e. n_fns)
-all_fns<-list.files(pattern = paste0('^',atlas_prefix, '.*txt'))
+all_fns<-list.files(path = "../Data/", pattern = paste0('^',atlas_prefix, '.*txt'), full.names = TRUE)
 X_list<-lapply(X=all_fns, FUN=read_delim, delim="\t", col_names = F,col_type = list(.default = col_double()))
 X <- array(unlist(X_list), c(dim(X_list[[1]]), length(X_list)))
 rm(X_list)
@@ -66,21 +66,105 @@ PlotScree(ev = covstatis_res$res4Cmat$eigValues,
           title = "RV-map: Explained Variance per Dimension")
 ```
 
+The factor map of the RV space shows how similar the data tables are to each other
+```{r}
+rv.labels <- createxyLabels.gen(x_axis = 1,
+                                y_axis = 2,
+                             lambda = covstatis_res$res4Cmat$eigValues,
+                             tau = covstatis_res$res4Cmat$tau)
+
+
+## factor map
+rv.map <- createFactorMap(covstatis_res$res4Cmat$G,
+                          title = "The component space of the RV matrix")
+
+rv.map$zeMap_background + rv.map$zeMap_dots + rv.labels
+
+```
+
+
 # Visualizing the results
 
 ## Compromise heatmap
 
-Let's now reconstruct a heatmap to explore our covSTATIS output. Let's start by visualizing the first two components (LV1, LV2).
+Let's first visualize the compromise (i.e., the optimal linear combination of the connectivity matrices)
+
+```{r}
+# heatmap.2(covstatis_res$res4Splus$Splus, 
+#           Rowv=F, Colv = "Rowv",dendrogram = "none",trace="none",
+#           scale="none", breaks=seq(-.03,.03,length.out = 100), col = redblue(99),
+#           main= 'The compromise',
+#           na.color = "darkgray",
+#           colRow=atlas_labels$Network_color, colCol=atlas_labels$Network_color)
+# 
+# atlas_labels$Network <- as.factor(atlas_labels$Network)
+
+
+net.col <- as.data.frame(unique(atlas_labels[,c(3,4)]))
+rownames(net.col) <- net.col$Network
+
+# devtools::install_github("mychan24/superheat")
+library(RColorBrewer)
+col.pal <- brewer.pal(200, "RdBu")
+superheat(covstatis_res$res4Splus$Splus,
+          membership.cols = atlas_labels$Network,
+          membership.rows = atlas_labels$Network,
+          clustering.method = NULL,
+          # heat.col.scheme = "RdBu",
+          heat.lim = c(-0.1,0.1),
+          heat.pal = rev(brewer.pal(200, "RdBu")),
+          heat.pal.values = c(0,0.45,0.5,0.55,1),
+          left.label.size = 0.08,
+          bottom.label.size = 0.05,
+          y.axis.reverse = TRUE,
+          left.label.col = net.col[levels(atlas_labels$Network),"Network_color"], # order by community name
+          bottom.label.col =  net.col[levels(atlas_labels$Network), "Network_color"],
+          left.label.text.size = 3,
+          bottom.label.text.size = 2,
+          left.label.text.col = "black",
+          bottom.label.text.col = "black",
+          left.label.text.alignment = "left",
+          title = "The compromise")$plot
+```
+Next, the compromise undergoes the eigendecomposition, which gives a scree plot as follows:
+
+```{r}
+PlotScree(ev = covstatis_res$res4Splus$eigValues, 
+          title = "Compromise: Explained Variance per Dimension")
+```
+
+
+Let's now reconstruct a heatmap to explore the dimensions from covSTATIS. Let's start by visualizing the first two components (LV1, LV2).
 
 ```{r}
 covstatis_corrmat_lv1_lv2 <- tcrossprod(covstatis_res$res4Splus$F[,c(1,2)])
 
-heatmap.2(covstatis_corrmat_lv1_lv2, 
-          Rowv=F, Colv = "Rowv",dendrogram = "none",trace="none",
-          scale="none", breaks=seq(-.03,.03,length.out = 100), col = redblue(99),
-          main= 'Rebuilt Heatmap for LV1 and LV2',
-          na.color = "darkgray",
-          colRow=atlas_labels$Network_color, colCol=atlas_labels$Network_color)
+# heatmap.2(covstatis_corrmat_lv1_lv2, 
+#           Rowv=F, Colv = "Rowv",dendrogram = "none",trace="none",
+#           scale="none", breaks=seq(-.03,.03,length.out = 100), col = redblue(99),
+#           main= 'Rebuilt Heatmap for LV1 and LV2',
+#           na.color = "darkgray",
+#           colRow=atlas_labels$Network_color, colCol=atlas_labels$Network_color)
+
+superheat(covstatis_corrmat_lv1_lv2,
+          membership.cols = atlas_labels$Network,
+          membership.rows = atlas_labels$Network,
+          clustering.method = NULL,
+          # heat.col.scheme = "RdBu",
+          heat.lim = c(-0.1,0.1),
+          heat.pal = rev(brewer.pal(200, "RdBu")),
+          heat.pal.values = c(0,0.45,0.5,0.55,1),
+          left.label.size = 0.08,
+          bottom.label.size = 0.05,
+          y.axis.reverse = TRUE,
+          left.label.col = net.col[levels(atlas_labels$Network),"Network_color"], # order by community name
+          bottom.label.col =  net.col[levels(atlas_labels$Network), "Network_color"],
+          left.label.text.size = 3,
+          bottom.label.text.size = 2,
+          left.label.text.col = "black",
+          bottom.label.text.col = "black",
+          left.label.text.alignment = "left",
+          title = "Rebuilt Heatmap for LV1 and LV2")$plot
 ```
 
 ## Compromise space plotting
@@ -95,12 +179,17 @@ network_colors <- unique(atlas_labels$Network_color)
 h_axis <-1 # component to plot on x-axis
 v_axis <-2 # component to plot on y-axis
 
+## create labels for the component space
+comp.lab <- createxyLabels.gen(x_axis = h_axis, y_axis = v_axis,
+                   lambda = covstatis_res$res4Splus$eigValues,
+                   tau = covstatis_res$res4Splus$tau)
+
 compromise_graph_out <- createFactorMap(covstatis_res$res4Splus$F,
                                         axis1 = h_axis, axis2 = v_axis,
                                         title = 'Compromise ROI Space',
                                         col.points = atlas_labels$Network_color,
                                         alpha.points=.6, cex=3) 
-print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots)
+print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots + comp.lab)
 ```
 
 We can also compute the average of all the ROIs (i.e., barycenter) for each _a priori_ network to get a coarser network compromise map.
@@ -114,14 +203,14 @@ compromise_network_graph_out <- createFactorMap(network_mean_F,
                                                 title = "Compromise map for network-level barycenters",
                                                 col.points = network_colors, col.labels = network_colors,
                                                 alpha.points=.8, cex=5, text.cex=4, alpha.labels=.8, pch=18)
-print(compromise_network_graph_out$zeMap + compromise_network_graph_out$zeMap_dots)
+print(compromise_network_graph_out$zeMap + compromise_network_graph_out$zeMap_dots + comp.lab)
 ```
 
 Both the ROI-level and network-level factor maps can be overlaid to show how individuals ROIs cluster around their respective networks, for the whole group.
 
 ```{r}
 print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots + 
-        compromise_network_graph_out$zeMap_dots + compromise_network_graph_out$zeMap_text)
+        compromise_network_graph_out$zeMap_dots + compromise_network_graph_out$zeMap_text + comp.lab)
 ```
 
 ## Partial maps on the compromise
@@ -170,7 +259,7 @@ compromise_pfs <- createPartialFactorScoresMap(
   shape.points = 20)
 
 print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots +
-  compromise_pfs$mapColByBlocks + ggtitle('Compromise map - Partial factor scores by task design'))
+  compromise_pfs$mapColByBlocks + ggtitle('Compromise map - Partial factor scores by task design') + comp.lab)
 ```
 
 That's a very busy plot! Let's clean it up to make things easier to interpret. Now we'll compute the partial factor scores by the mean network compromise. Similar to our ROI plot, for each network, the more spread out the conditions are from the network mean, the more diverse the functional connectivity is across task conditions.
@@ -192,7 +281,7 @@ compromise_pfs_network <- createPartialFactorScoresMap(
   names4Partial = dimnames(F_k_network)[[3]], # 
   size.labels=3.5, size.points = 2,shape.points=20)
 
-print(compromise_network_graph_out$zeMap + compromise_pfs_network$mapColByBlocks + ggtitle('Network level compromise map - Partial factor scores by task design'))
+print(compromise_network_graph_out$zeMap + compromise_pfs_network$mapColByBlocks + ggtitle('Network level compromise map - Partial factor scores by task design') + comp.lab)
 ```
 
 We can now compute the area of the convex hull around the partial factor scores for each individual at the network-level (NB: this can be done at the regional level too). Area of the hull scores can be seen as "task condition differentiation scores": the larger the area of the hull, the more diverse the network functional connectivity is across task conditions (more distant from mean); the smaller the area of the hull, the more homogenous the functional connectivity across 0-,1-, and 2-back.
@@ -221,9 +310,8 @@ for(i in 1:length(ids)){
   
   ## Loop through each network, get the LV1 and LV2 points, and compute the area of the hull around the points
   for(n in 1:length(network_labels)){
-    hull_pts <- chull(this_lv1_network[n,], this_lv2_network[n,]) #here you can play with the flag "percentage" and include either all points (like done here) or e.g., 95% of them in which case you'd write "percentage=0.95"
-    this_hull_coords <- cbind(this_lv1_network[n,hull_pts],this_lv2_network[n,hull_pts] )
-    this_poly_area <- Polygon(this_hull_coords, hole=F)@area
+    hull_pts <- peelZeHull(cbind(this_lv1_network[n,], this_lv2_network[n,])) #here you can play with the flag "percentage" and include either all points (like done here) or e.g., 95% of them in which case you'd write "percentage=0.95"
+    this_poly_area <- Polygon(hull_pts, hole=F)@area
     task_diff_network_level[i,n] <- this_poly_area
     
   }
