@@ -12,18 +12,20 @@ library(readr)
 library(DistatisR)  # covSTATIS analysis
 library(PTCA4CATA)  # factor map plotting
 library(ExPosition) # makeDataNominal()
-library(gplots) #heatmap.2()
-library(sp)         #convex hulls in compute_task_diff()
+library(gplots)     # heatmap.2()
+library(sp)         # convex hulls 
 library(ggplot2)
 ```
 
-# Setup
+# Setup & data info
 
-Retrieve data from OSF. Download nback (0-,1-,2-back) data from: https://osf.io/hnj7s/. You should have 144x3 txt files (nx3 task conditions). Make sure to download the following csv file "participants_ages.csv" as well from: https://osf.io/dm23b/. Make sure txt files, participant info and the atlas labels csv files are stored in the Data folder. 
+Retrieve data from our Github. Download nback (0-,1-,2-back) data from: https://osf.io/hnj7s/. You should have 144x3 txt files (nx3 task conditions). Make sure to download the following csv file "participants_ages.csv" as well from: https://osf.io/dm23b/. Make sure txt files, participant info and the atlas labels csv files are stored in the Data folder. 
+
+After standard preprocessing (see Rieck et al., 2022 NboA), each individual’s voxel-time series were parcellated, for each task condition, using the standard 100 region-17 network Schaefer atlas (CITE). For each participant and condition, product-to-moment correlations were quantified between region pairs, to ultimately obtain 100x100x3 functional connectivity matrices for each individual. These 144x100x100x3 data tables (individual x region x region x task condition) are used in this tutorial.
 
 ## Read in the data
 
-The first step is to read in our connectivity matrices to form a 3D array (= 'X' here below) for analysis with covSTATIS. In this vignette the 3D array dimensionality is 100 x 100 x 99 (ROI x ROI x N participants) per task condition (3 in total). 
+The first step is to read in our connectivity matrices to form a 3D array (= 'X' here below) for analysis with covSTATIS. In this vignette the 3D array dimensionality is 100 x 100 x 144 (ROI x ROI x N participants) per task condition (3 in total). 
 
 ```{r}
 setwd('./../Data/')
