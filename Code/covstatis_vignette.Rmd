@@ -5,6 +5,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+rm(list=ls())
 library(tidyr)
 library(dplyr)
 library(osfr)
@@ -12,33 +13,39 @@ library(readr)
 library(DistatisR)  # covSTATIS analysis
 library(PTCA4CATA)  # factor map plotting
 library(ExPosition) # makeDataNominal()
-library(gplots) #heatmap.2()
-library(sp)         #convex hulls in compute_task_diff()
+library(gplots)     # heatmap.2()
+library(sp)         # convex hulls 
 library(ggplot2)
+library(RColorBrewer)
+library(superheat)
 ```
 
-# Setup
+## Setup
 
-Retrieve data from OSF. Download nback (0-,1-,2-back) data from: https://osf.io/hnj7s/. You should have 144x3 txt files (nx3 task conditions). Make sure to download the following csv file "participants_ages.csv" as well from: https://osf.io/dm23b/. Make sure txt files, participant info and the atlas labels csv files are stored in the Data folder. 
+All data used in this tutorial are stored at: https://github.com/giuliabaracc/covSTATIS_netneuro/tree/main/Data. The "Data" repo contains: 144x3 functional connectivity text files (n=144, 3=task conditions, 0-,1-,2-back), a "participants_ages.csv" file with participants info and an atlas labels file "Schaefer_100parcel_17network_labels.csv". 
+
+## Data info
+
+After standard preprocessing (see Rieck et al., 2021 Data in Brief), each individual’s voxel-time series were parcellated, for each task condition, using the standard 100 region-17 network Schaefer atlas (Schaefer et al., 2018 Cerebral Cortex). For each participant and condition, Pearson's correlations were quantified between region pairs, to ultimately obtain 100x100x3 functional connectivity matrices for each individual. 
 
 ## Read in the data
 
-The first step is to read in our connectivity matrices to form a 3D array (= 'X' here below) for analysis with covSTATIS. In this vignette the 3D array dimensionality is 100 x 100 x 99 (ROI x ROI x N participants) per task condition (3 in total). 
+The first step is to read in our connectivity matrices to form a 3D array (= 'X' here below) for analysis with covSTATIS. In this tutorial, the 3D array dimensionality is 100 x 100 x 144 x 3 (ROI x ROI x N x Task condition). 
 
 ```{r}
 setwd('../Data/')
 atlas_prefix <- "Schaefer100_17"
 atlas_labels <- read_csv('../Data/Schaefer_100parcel_17network_labels.csv')
+atlas_labels$Network <- as.factor(atlas_labels$Network)
 demog_in <- read_csv('../Data/participant_ages.csv')
 ids <- demog_in$subjectID
 
 ## Read in FC .txt files and reshape into 3D array with size n_roi x n_roi x n_sub*n_conditions (i.e. n_fns)
-all_fns<-list.files(path = "../Data/", pattern = paste0('^',atlas_prefix, '.*txt'), full.names = TRUE)
+all_fns<-list.files(path = "../Data/", pattern = paste0('^',atlas_prefix, '.*txt'))
 X_list<-lapply(X=all_fns, FUN=read_delim, delim="\t", col_names = F,col_type = list(.default = col_double()))
-X <- array(unlist(X_list), c(dim(X_list[[1]]), length(X_list)))
-rm(X_list)
+X <- array(unlist(X_list), c(dim(X_list[[1]]), length(X_list))) #our 3D array
+rm(X_list) 
 
-#### For Schaefer atlases, label the individual ROIs
 ## Label rows and columns with ROI label
 if(length(grep("Schaefer", atlas_prefix)>0)){
   rownames(X)<- atlas_labels$ROI_label
@@ -51,29 +58,32 @@ dimnames(X)[[3]]<-all_fns %>% gsub(pattern=".txt", replacement = "") %>%
 
 ```
 
-The resulting X data cube is `r dim(X)[1]` by `r dim(X)[2]` ROIs across `r dim(X)[3]/3` participants with 3 n-back conditions each. 
-
-# Run covSTATIS
+## Run covSTATIS
 
 Now that we have created our 3D data array (X), we can run covSTATIS. Since we are dealing with correlation values, the Distance flag should be set to FALSE. The nfact2keep flag denotes the number of components we want to keep (the bigger the value, the slower the computations).
 
-The Scree plot shows how much variance is explained by each component/dimension of covSTATIS. Ideally, there will be one strong component (as is the case with these data) indicating a strong coherence in the general network organization across all participants.
-
 ```{r}
 covstatis_res <- distatis(X, Distance = F,nfact2keep = 10,compact = F)
+```
 
+### Step 1: RV similarity matrix 
+
+The first operation covSTATIS computes is the generation of an RV similarity matrix. The RV matrix quantifies the pairwise similarity among all data tables (squared Pearson's correlation), irrespective of their rotation or scaling. The RV matrix then undergoes eigenvalue decomposition (EVD). The resulting first component best represents the common pattern across all tables, and its first eigenvector quantifies how similar each table is to this common pattern. 
+
+Let's visualize the results of this EVD on the RV matrix. The Scree plot shows how much variance is explained by each component/dimension. Ideally, there will be one strong component (as is the case with these data) indicating a strong coherence in the general network organization across all observations.
+
+```{r}
 PlotScree(ev = covstatis_res$res4Cmat$eigValues, 
           title = "RV-map: Explained Variance per Dimension")
 ```
 
-The factor map of the RV space shows how similar the data tables are to each other
+The factor map of the RV space shows how similar the data tables are to each other.
+
 ```{r}
 rv.labels <- createxyLabels.gen(x_axis = 1,
                                 y_axis = 2,
-                             lambda = covstatis_res$res4Cmat$eigValues,
-                             tau = covstatis_res$res4Cmat$tau)
-
-
+                                lambda = covstatis_res$res4Cmat$eigValues,
+                                tau = covstatis_res$res4Cmat$tau)
 ## factor map
 rv.map <- createFactorMap(covstatis_res$res4Cmat$G,
                           title = "The component space of the RV matrix")
@@ -82,37 +92,21 @@ rv.map$zeMap_background + rv.map$zeMap_dots + rv.labels
 
 ```
 
+### Step 2: Compromise space
 
-# Visualizing the results
-
-## Compromise heatmap
-
-Let's first visualize the compromise (i.e., the optimal linear combination of the connectivity matrices)
+Next, covSTATIS grabs the first eigenvector of this EVD on RV and scales it to sum to 1. The compromise matrix is built from the weighted sum of all data matrices and then also submitted to EVD. Let's first visualize the compromise space/matrix.
 
 ```{r}
-# heatmap.2(covstatis_res$res4Splus$Splus, 
-#           Rowv=F, Colv = "Rowv",dendrogram = "none",trace="none",
-#           scale="none", breaks=seq(-.03,.03,length.out = 100), col = redblue(99),
-#           main= 'The compromise',
-#           na.color = "darkgray",
-#           colRow=atlas_labels$Network_color, colCol=atlas_labels$Network_color)
-# 
-# atlas_labels$Network <- as.factor(atlas_labels$Network)
-
-
 net.col <- as.data.frame(unique(atlas_labels[,c(3,4)]))
 rownames(net.col) <- net.col$Network
 
-# devtools::install_github("mychan24/superheat")
-library(RColorBrewer)
-col.pal <- brewer.pal(200, "RdBu")
+col.pal <- brewer.pal(11, "RdBu")
 superheat(covstatis_res$res4Splus$Splus,
           membership.cols = atlas_labels$Network,
           membership.rows = atlas_labels$Network,
           clustering.method = NULL,
-          # heat.col.scheme = "RdBu",
           heat.lim = c(-0.1,0.1),
-          heat.pal = rev(brewer.pal(200, "RdBu")),
+          heat.pal = rev(brewer.pal(11, "RdBu")),
           heat.pal.values = c(0,0.45,0.5,0.55,1),
           left.label.size = 0.08,
           bottom.label.size = 0.05,
@@ -126,33 +120,26 @@ superheat(covstatis_res$res4Splus$Splus,
           left.label.text.alignment = "left",
           title = "The compromise")$plot
 ```
-Next, the compromise undergoes the eigendecomposition, which gives a scree plot as follows:
+
+Next, the compromise undergoes EVD. Let's visualize its scree plot:
 
 ```{r}
-PlotScree(ev = covstatis_res$res4Splus$eigValues, 
-          title = "Compromise: Explained Variance per Dimension")
+# ### GB comment: this doesn't work. There is no info stored in covstatis_res$res4Splus$eigValues?
+# PlotScree(ev = covstatis_res$res4Splus$eigValues, 
+#           title = "Compromise: Explained Variance per Dimension")
 ```
 
-
-Let's now reconstruct a heatmap to explore the dimensions from covSTATIS. Let's start by visualizing the first two components (LV1, LV2).
+Let's now reconstruct a heatmap to explore the dimensions from the EVD on the compromise. Let's start by visualizing the first two components (LV1, LV2).
 
 ```{r}
 covstatis_corrmat_lv1_lv2 <- tcrossprod(covstatis_res$res4Splus$F[,c(1,2)])
-
-# heatmap.2(covstatis_corrmat_lv1_lv2, 
-#           Rowv=F, Colv = "Rowv",dendrogram = "none",trace="none",
-#           scale="none", breaks=seq(-.03,.03,length.out = 100), col = redblue(99),
-#           main= 'Rebuilt Heatmap for LV1 and LV2',
-#           na.color = "darkgray",
-#           colRow=atlas_labels$Network_color, colCol=atlas_labels$Network_color)
 
 superheat(covstatis_corrmat_lv1_lv2,
           membership.cols = atlas_labels$Network,
           membership.rows = atlas_labels$Network,
           clustering.method = NULL,
-          # heat.col.scheme = "RdBu",
           heat.lim = c(-0.1,0.1),
-          heat.pal = rev(brewer.pal(200, "RdBu")),
+          heat.pal = rev(brewer.pal(11, "RdBu")),
           heat.pal.values = c(0,0.45,0.5,0.55,1),
           left.label.size = 0.08,
           bottom.label.size = 0.05,
@@ -167,9 +154,9 @@ superheat(covstatis_corrmat_lv1_lv2,
           title = "Rebuilt Heatmap for LV1 and LV2")$plot
 ```
 
-## Compromise space plotting
+### Step 3: global factor scores from compromise space
 
-Let's now plot the linear combination of all our data tables, the compromise space. The compromise space shows us how regional connectivity values relate to each other across individuals and conditions. Each point in the compromise space represents a different ROI from our functional connectivity matrices, colored by their network membership. The closer points are, the stronger the functional connectivity across the entire dataset.
+The compromise space shows us how regional connectivity values relate to each other across all data tables (individuals and conditions). Each point in the compromise space represents a global factor score: a different ROI from our functional connectivity matrices, colored by their network membership. The closer points are, the stronger the functional connectivity across the entire dataset.
 
 ```{r}
 network_labels <- unique(atlas_labels$Network)
@@ -179,17 +166,12 @@ network_colors <- unique(atlas_labels$Network_color)
 h_axis <-1 # component to plot on x-axis
 v_axis <-2 # component to plot on y-axis
 
-## create labels for the component space
-comp.lab <- createxyLabels.gen(x_axis = h_axis, y_axis = v_axis,
-                   lambda = covstatis_res$res4Splus$eigValues,
-                   tau = covstatis_res$res4Splus$tau)
-
 compromise_graph_out <- createFactorMap(covstatis_res$res4Splus$F,
                                         axis1 = h_axis, axis2 = v_axis,
                                         title = 'Compromise ROI Space',
                                         col.points = atlas_labels$Network_color,
                                         alpha.points=.6, cex=3) 
-print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots + comp.lab)
+print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots)
 ```
 
 We can also compute the average of all the ROIs (i.e., barycenter) for each _a priori_ network to get a coarser network compromise map.
@@ -203,19 +185,20 @@ compromise_network_graph_out <- createFactorMap(network_mean_F,
                                                 title = "Compromise map for network-level barycenters",
                                                 col.points = network_colors, col.labels = network_colors,
                                                 alpha.points=.8, cex=5, text.cex=4, alpha.labels=.8, pch=18)
-print(compromise_network_graph_out$zeMap + compromise_network_graph_out$zeMap_dots + comp.lab)
+print(compromise_network_graph_out$zeMap + compromise_network_graph_out$zeMap_dots)
 ```
 
-Both the ROI-level and network-level factor maps can be overlaid to show how individuals ROIs cluster around their respective networks, for the whole group.
+Both the ROI-level and network-level factor maps can be overlaid to show how individuals ROIs cluster around their respective networks, for the whole sample.
 
 ```{r}
 print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots + 
-        compromise_network_graph_out$zeMap_dots + compromise_network_graph_out$zeMap_text + comp.lab)
+        compromise_network_graph_out$zeMap_dots + compromise_network_graph_out$zeMap_text)
 ```
 
-## Partial maps on the compromise
+### Step 4: partial factor scores from compromise space
 
-Using partial projection, we can now project each condition back onto the compromise space (i.e., partial factor scores) to understand how each correlation matrix fits in the compromise (or group level) space. 
+Using partial projection, we can now project each condition back onto the compromise space (i.e., partial factor scores) to understand how each correlation matrix fits in the compromise (or sample-level) space. 
+
 To do that, we should first create a design matrix specifying which slice in our X cube corresponds to which n-back condition:
 
 ```{r}
@@ -259,10 +242,10 @@ compromise_pfs <- createPartialFactorScoresMap(
   shape.points = 20)
 
 print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots +
-  compromise_pfs$mapColByBlocks + ggtitle('Compromise map - Partial factor scores by task design') + comp.lab)
+  compromise_pfs$mapColByBlocks + ggtitle('Compromise map - Partial factor scores by task design'))
 ```
 
-That's a very busy plot! Let's clean it up to make things easier to interpret. Now we'll compute the partial factor scores by the mean network compromise. Similar to our ROI plot, for each network, the more spread out the conditions are from the network mean, the more diverse the functional connectivity is across task conditions.
+That's a very busy plot! Let's clean it up to make things easier to interpret. We can compute the partial factor scores by the mean network compromise. Similar to our ROI plot, for each network, the more spread out the conditions are from the network mean, the more diverse the functional connectivity is across task conditions. Tip: if you have groups, sometimes it is helpful to separate partial factor scores per group and plot them individually (e.g., you may not be able to see a difference if everything is plotted together).
 
 ```{r}
 F_k_network<-array(NA, dim=c(length(network_labels), dim(F_k)[2], dim(F_k)[3]))
@@ -281,10 +264,12 @@ compromise_pfs_network <- createPartialFactorScoresMap(
   names4Partial = dimnames(F_k_network)[[3]], # 
   size.labels=3.5, size.points = 2,shape.points=20)
 
-print(compromise_network_graph_out$zeMap + compromise_pfs_network$mapColByBlocks + ggtitle('Network level compromise map - Partial factor scores by task design') + comp.lab)
+print(compromise_network_graph_out$zeMap + compromise_pfs_network$mapColByBlocks + ggtitle('Network level compromise map - Partial factor scores by task design'))
 ```
 
-We can now compute the area of the convex hull around the partial factor scores for each individual at the network-level (NB: this can be done at the regional level too). Area of the hull scores can be seen as "task condition differentiation scores": the larger the area of the hull, the more diverse the network functional connectivity is across task conditions (more distant from mean); the smaller the area of the hull, the more homogenous the functional connectivity across 0-,1-, and 2-back.
+### Step 5: area of the convex hull
+
+We can now compute the area of the convex hull around the partial factor scores for each individual at the network-level (NB: this can be done at the regional level too). Area of the hull scores can be seen as "task condition differentiation scores": the larger the area of the hull, the more diverse the network functional connectivity is across task conditions (more distant from mean); the smaller the area of the hull, the more homogenous the functional connectivity across 0-,1-, and 2-back. Note: area of the hull values are arbitrary so you can go ahead and normalize them. Make sure you have at least 4 points to build the area of the hull (here you'll see warnings cause some networks have less than 4 observations/ROIs).
 
 ```{r}
 ## Create empty matrix to put results in, should be # participants (rows) by # networks (columns)
@@ -310,15 +295,25 @@ for(i in 1:length(ids)){
   
   ## Loop through each network, get the LV1 and LV2 points, and compute the area of the hull around the points
   for(n in 1:length(network_labels)){
-    hull_pts <- peelZeHull(cbind(this_lv1_network[n,], this_lv2_network[n,])) #here you can play with the flag "percentage" and include either all points (like done here) or e.g., 95% of them in which case you'd write "percentage=0.95"
-    this_poly_area <- Polygon(hull_pts, hole=F)@area
+    hull_pts <- chull(this_lv1_network[n,], this_lv2_network[n,]) #here you can play with the flag "percentage" and include either all points (like done here) or e.g., 95% of them in which case you'd write "percentage=0.95"
+    this_hull_coords <- cbind(this_lv1_network[n,hull_pts],this_lv2_network[n,hull_pts] )
+    this_poly_area <- Polygon(this_hull_coords, hole=F)@area
     task_diff_network_level[i,n] <- this_poly_area
     
   }
-}
+} 
 
 #print(task_diff_network_level) #you can go ahead and save this output and relate it to e.g., behavior
-#### Eg lets see individual sub-network (DMN A) task differentiation scores and how they change with age
-plot(x = demog_in$Age, y = (task_diff_network_level$DMN.A),
-     xlab='Age', ylab = 'Task Differentiation', main='Default A')
+```
+
+Area of the hull scores can be used in secondary analyses, such as brain-behavior correlation. Since our sample is an adult lifespan sample, we can relate area of the hull scores to age. This plot shows how Default A functional connectivity becomes more homogeneous/less differentiated across tasks as a function of age.
+
+```{r}
+secondary_analyses <- cbind(demog_in$Age, task_diff_network_level)
+secondary_analyses <- as.data.frame(secondary_analyses)
+colnames(secondary_analyses)[1] <- "Age"
+colnames(secondary_analyses)[14] <- "DefaultA"
+ggplot(secondary_analyses, aes(x=Age, y=DefaultA)) + 
+  geom_point()+
+  geom_smooth(method=lm)
 ```
