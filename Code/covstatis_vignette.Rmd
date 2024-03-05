@@ -44,6 +44,14 @@ ids <- demog_in$subjectID
 
 ## Read in FC .txt files and reshape into 3D array with size n_roi x n_roi x n_sub*n_conditions (i.e. n_fns)
 all_fns<-list.files(path = "../Data/", pattern = paste0('^',atlas_prefix, '.*txt'))
+atlas_prefix <- "Schaefer100_17"
+atlas_labels <- read_csv('Data/Schaefer_100parcel_17network_labels.csv')
+atlas_labels$Network <- as.factor(atlas_labels$Network)
+demog_in <- read_csv('Data/participant_ages.csv')
+ids <- demog_in$subjectID
+
+## Read in FC .txt files and reshape into 3D array with size n_roi x n_roi x n_sub*n_conditions (i.e. n_fns)
+all_fns<-list.files(path = "Data/", pattern = paste0('^',atlas_prefix, '.*txt'))
 X_list<-lapply(X=all_fns, FUN=read_delim, delim="\t", col_names = F,col_type = list(.default = col_double()))
 X <- array(unlist(X_list), c(dim(X_list[[1]]), length(X_list))) #our 3D array
 rm(X_list) 
