@@ -10,6 +10,7 @@ library(tidyr)
 library(dplyr)
 library(osfr)
 library(readr)
+#dev.tools::install_github("HerveAbdi/DistatisR")
 library(DistatisR)  # covSTATIS analysis
 library(PTCA4CATA)  # factor map plotting
 library(ExPosition) # makeDataNominal()
@@ -17,6 +18,7 @@ library(gplots)     # heatmap.2()
 library(sp)         # convex hulls 
 library(ggplot2)
 library(RColorBrewer)
+#dev.tools::install_github("mchan/superheat")
 library(superheat)
 ```
 
@@ -26,7 +28,7 @@ All data used in this tutorial are stored at: https://github.com/giuliabaracc/co
 
 ## Data info
 
-After standard preprocessing (see Rieck et al., 2021 Data in Brief), each individual’s voxel-time series were parcellated, for each task condition, using the standard 100 region-17 network Schaefer atlas (Schaefer et al., 2018 Cerebral Cortex). For each participant and condition, Pearson's correlations were quantified between region pairs, to ultimately obtain 100x100x3 functional connectivity matrices for each individual. 
+After standard preprocessing (see Rieck et al., 2021 Data in Brief), each individual's voxel-time series were parcellated, for each task condition, using the standard 100 region-17 network Schaefer atlas (Schaefer et al., 2018 Cerebral Cortex). For each participant and condition, Pearson's correlations were quantified between region pairs, to ultimately obtain 100x100x3 functional connectivity matrices for each individual. 
 
 ## Read in the data
 
