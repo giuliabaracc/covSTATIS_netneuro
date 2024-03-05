@@ -1,10 +1,15 @@
 ---
 title: "covSTATIS vignette"
-output: html_document
+header-includes:
+  \usepackage{fvextra}
+  \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(message=FALSE, warning=FALSE, tidy.opts=list(width.cutoff=80),tidy=TRUE)
 rm(list=ls())
 library(tidyr)
 library(dplyr)
@@ -285,14 +290,14 @@ for(i in 1:length(ids)){
   ### Grab all the partialF values associated with this subject for LV1
   this_lv1 <- partialF[,1,grep(paste0(ids[i], "_*"),dimnames(partialF)[[3]])]
   ## Transform the node-level partialF to network-level partialF for LV1
-  this_lv1_network<-t(apply(makeNominalData(as.matrix(atlas_labels$Network)),2,function(x){x/sum(x)})) %*% 
-    as.matrix(this_lv1)
+  this_lv1_network<-t(apply(makeNominalData(as.matrix(atlas_labels$Network)),2,
+                            function(x){x/sum(x)})) %*% as.matrix(this_lv1)
   
   ### Grab all the partialF values associated with this P for LV2
   this_lv2 <- partialF[,2,grep(paste0(ids[i], "_*"),dimnames(partialF)[[3]])]
   ## Transform the node-level partialF to network-level partialF for LV2
-  this_lv2_network<-t(apply(makeNominalData(as.matrix(atlas_labels$Network)),2,function(x){x/sum(x)})) %*% 
-    as.matrix(this_lv2)
+  this_lv2_network<-t(apply(makeNominalData(as.matrix(atlas_labels$Network)),2,
+                            function(x){x/sum(x)})) %*% as.matrix(this_lv2)
   
   ## Loop through each network, get the LV1 and LV2 points, and compute the area of the hull around the points
   for(n in 1:length(network_labels)){
