@@ -3624,6 +3624,42 @@
          d="m 377,526 h 170 v 39 H 377 Z"
          id="path2726" />
     </clipPath>
+    <rect
+       x="27.147032"
+       y="111.27595"
+       width="37.091984"
+       height="9.1386051"
+       id="rect12106-3-0-1-9-6-7" />
+    <rect
+       x="27.147032"
+       y="111.27595"
+       width="37.091984"
+       height="9.1386051"
+       id="rect2163" />
+    <rect
+       x="27.147032"
+       y="111.27595"
+       width="37.091984"
+       height="9.1386051"
+       id="rect12106-3-0-1-9-6-7-0" />
+    <rect
+       x="27.147032"
+       y="111.27595"
+       width="37.091984"
+       height="9.1386051"
+       id="rect2221" />
+    <rect
+       x="27.147032"
+       y="111.27595"
+       width="37.091984"
+       height="9.1386051"
+       id="rect12106-3-0-1-9-6-7-0-0" />
+    <rect
+       x="27.147032"
+       y="111.27595"
+       width="37.091984"
+       height="9.1386051"
+       id="rect2262" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -3632,9 +3668,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.73891281"
-     inkscape:cx="192.37799"
-     inkscape:cy="484.46715"
+     inkscape:zoom="0.63899094"
+     inkscape:cx="355.84877"
+     inkscape:cy="751.78988"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -4617,9 +4653,9 @@
          x="6.7623602"
          y="33.053418"><tspan
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82046px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;shape-inside:url(#rect12112-7-0-0-5-5-6-0-8-8-4)">Similarity between observations (across the whole sample or within group) </tspan></tspan><tspan
-         x="15.705753"
+         x="17.586977"
          y="36.014901"><tspan
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82046px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;shape-inside:url(#rect12112-7-0-0-5-5-6-0-8-8-4)">can also be quantified by quantifying the area of convex hull </tspan></tspan></text>
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82046px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;shape-inside:url(#rect12112-7-0-0-5-5-6-0-8-8-4)">can also be quantified by deriving the area of convex hull </tspan></tspan></text>
     <rect
        style="opacity:0.78;fill:none;fill-opacity:0.590643;stroke:#010101;stroke-width:0.326606;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:1.95963, 0.326606;stroke-dashoffset:0;stroke-opacity:1"
        id="rect9094"
@@ -6228,5 +6264,50 @@
        style="fill:none;stroke:#000000;stroke-width:0.648;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 184.7227,278.27058 c -7.79622,-7.17321 -7.83808,-7.0687 -7.83808,-7.0687 z"
        id="path19259-4-7-47-5-0" />
+    <ellipse
+       style="opacity:0.72;fill:#000000;fill-opacity:0.3;stroke:#000000;stroke-width:0.368629;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path11263-1-4-2-8-1-3"
+       cx="83.020203"
+       cy="131.96553"
+       rx="1.8874474"
+       ry="1.7963271" />
+    <text
+       xml:space="preserve"
+       id="text12104-7-2-3-9-2-7"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82221000000000011px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;shape-inside:url(#rect12106-3-0-1-9-6-7);"
+       transform="matrix(1.2934258,0,0,1.230983,46.731226,-7.0168806)"><tspan
+         x="27.146484"
+         y="113.81751"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82221px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">A</tspan></tspan></text>
+    <ellipse
+       style="opacity:0.72;fill:#000000;fill-opacity:0.3;stroke:#000000;stroke-width:0.368629;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path11263-1-4-2-8-1-3-3"
+       cx="24.980856"
+       cy="221.59744"
+       rx="1.8874474"
+       ry="1.7963271" />
+    <text
+       xml:space="preserve"
+       id="text12104-7-2-3-9-2-7-9"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82221000000000011px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;shape-inside:url(#rect12106-3-0-1-9-6-7-0);"
+       transform="matrix(1.2934258,0,0,1.230983,-11.092767,82.614998)"><tspan
+         x="27.146484"
+         y="113.81751"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82221px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">B</tspan></tspan></text>
+    <ellipse
+       style="opacity:0.72;fill:#000000;fill-opacity:0.3;stroke:#000000;stroke-width:0.368629;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path11263-1-4-2-8-1-3-3-9"
+       cx="148.37769"
+       cy="221.81279"
+       rx="1.8874474"
+       ry="1.7963271" />
+    <text
+       xml:space="preserve"
+       id="text12104-7-2-3-9-2-7-9-9"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82221000000000011px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;shape-inside:url(#rect12106-3-0-1-9-6-7-0-0);"
+       transform="matrix(1.2934258,0,0,1.230983,112.08871,82.830345)"><tspan
+         x="27.146484"
+         y="113.81751"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82221px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">C</tspan></tspan></text>
   </g>
 </svg>
