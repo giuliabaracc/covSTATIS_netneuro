@@ -1,16 +1,12 @@
 ---
-title: "covSTATIS vignette"
-header-includes:
-  \usepackage{fvextra}
-  \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
-output:
-  pdf_document: default
-  html_document: default
+title: "Application of covSTATIS to neuroimaging data"
+output: md_document
+keep: true
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(message=FALSE, warning=FALSE, tidy.opts=list(width.cutoff=80),tidy=TRUE)
-rm(list=ls())
+knitr::opts_chunk$set(message=FALSE, warning=FALSE, tidy.opts=list(width.cutoff=80), tidy=TRUE)
+# rm(list=ls())
 library(tidyr)
 library(dplyr)
 library(osfr)
@@ -24,7 +20,7 @@ library(gplots)     # heatmap.2()
 library(sp)         # convex hulls 
 library(ggplot2)
 library(RColorBrewer)
-#devtools::install_github("mchan/superheat")
+# devtools::install_github("mychan24/superheat")
 library(superheat)
 ```
 
@@ -40,15 +36,15 @@ After standard preprocessing (see Rieck et al., 2021 Data in Brief), each indivi
 
 The first step is to read in our connectivity matrices to form a 3D array (= 'X' here below) for analysis with covSTATIS. In this tutorial, the 3D array dimensionality is 100 x 100 x 144 x 3 (ROI x ROI x N x Task condition). 
 
-```{r}
+```{r load data, cache = TRUE}
 atlas_prefix <- "Schaefer100_17"
-atlas_labels <- read_csv('Data/Schaefer_100parcel_17network_labels.csv')
+atlas_labels <- read_csv('../Data/Schaefer_100parcel_17network_labels.csv')
 atlas_labels$Network <- as.factor(atlas_labels$Network)
-demog_in <- read_csv('Data/participant_ages.csv')
+demog_in <- read_csv('../Data/participant_ages.csv')
 ids <- demog_in$subjectID
 
 ## Read in FC .txt files and reshape into 3D array with size n_roi x n_roi x n_sub*n_conditions (i.e. n_fns)
-all_fns<-list.files(path = 'Data', pattern = paste0('^', atlas_prefix, '.*txt'), full.names = TRUE)
+all_fns<-list.files(path = '../Data', pattern = paste0('^', atlas_prefix, '.*txt'), full.names = TRUE)
 X_list<-lapply(X=all_fns, FUN=read_delim, delim="\t", col_names = F,col_type = list(.default = col_double()))
 X <- array(unlist(X_list), c(dim(X_list[[1]]), length(X_list))) #our 3D array
 rm(X_list) 
