@@ -1,4 +1,4 @@
-# covSTATIS_netneuro
+# Reproducible example for the paper "covSTATIS: a multi-table technique for network neuroscience"
 
 This serves as the main repository for our manuscript "covSTATIS: a multi-table technique for network neuroscience". 
 In this repo, you'll find data (/Data) and code (/Code) we used to create our covSTATIS tutorial. All info on how to run the tutorial yourself is in the .Rmd file :)
@@ -87,7 +87,7 @@ across all observations.
 
     PlotScree(ev = covstatis_res$res4Cmat$eigValues, title = "RV-map: Explained Variance per Dimension")
 
-![](covstatis_vignette_files/figure-markdown_strict/unnamed-chunk-2-1.png)
+![](figure/unnamed-chunk-2-1.png)
 
 The factor map of the RV space shows how similar the data tables are to
 each other.
@@ -99,7 +99,7 @@ each other.
 
     rv.map$zeMap_background + rv.map$zeMap_dots + rv.labels
 
-![](covstatis_vignette_files/figure-markdown_strict/unnamed-chunk-3-1.png)
+![](figure/unnamed-chunk-3-1.png)
 
 ### Step 2: Compromise space
 
@@ -131,7 +131,7 @@ the compromise space/matrix.
               left.label.text.alignment = "left",
               title = "The compromise")$plot
 
-![](covstatis_vignette_files/figure-markdown_strict/unnamed-chunk-4-1.png)
+![](figure/unnamed-chunk-4-1.png)
 
     ## TableGrob (7 x 4) "layout": 5 grobs
     ##   z     cells   name                     grob
@@ -145,7 +145,7 @@ Next, the compromise undergoes EVD. Let’s visualize its scree plot:
 
     PlotScree(ev = covstatis_res$res4Splus$eigValues, title = "Compromise: Explained Variance per Dimension")
 
-![](covstatis_vignette_files/figure-markdown_strict/unnamed-chunk-5-1.png)
+![](figure/unnamed-chunk-5-1.png)
 
 Let’s now reconstruct a heatmap to explore the dimensions from the EVD
 on the compromise. Let’s start by visualizing the first two components
@@ -172,7 +172,7 @@ on the compromise. Let’s start by visualizing the first two components
               left.label.text.alignment = "left",
               title = "Rebuilt Heatmap for LV1 and LV2")$plot
 
-![](covstatis_vignette_files/figure-markdown_strict/unnamed-chunk-6-1.png)
+![](figure/unnamed-chunk-6-1.png)
 
     ## TableGrob (7 x 4) "layout": 5 grobs
     ##   z     cells   name                     grob
@@ -203,7 +203,7 @@ functional connectivity across the entire dataset.
         alpha.points = 0.6, cex = 3)
     print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots)
 
-![](covstatis_vignette_files/figure-markdown_strict/unnamed-chunk-7-1.png)
+![](figure/unnamed-chunk-7-1.png)
 
 We can also compute the average of all the ROIs (i.e., barycenter) for
 each *a priori* network to get a coarser network compromise map.
@@ -219,7 +219,7 @@ each *a priori* network to get a coarser network compromise map.
         pch = 18)
     print(compromise_network_graph_out$zeMap + compromise_network_graph_out$zeMap_dots)
 
-![](covstatis_vignette_files/figure-markdown_strict/unnamed-chunk-8-1.png)
+![](figure/unnamed-chunk-8-1.png)
 
 Both the ROI-level and network-level factor maps can be overlaid to show
 how individuals ROIs cluster around their respective networks, for the
@@ -228,7 +228,7 @@ whole sample.
     print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots + compromise_network_graph_out$zeMap_dots +
         compromise_network_graph_out$zeMap_text)
 
-![](covstatis_vignette_files/figure-markdown_strict/unnamed-chunk-9-1.png)
+![](figure/unnamed-chunk-9-1.png)
 
 ### Step 4: partial factor scores from compromise space
 
@@ -282,7 +282,7 @@ center: more similar; farther from ROI center: more different).
     print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots +
       compromise_pfs$mapColByBlocks + ggtitle('Compromise map - Partial factor scores by task design'))
 
-![](covstatis_vignette_files/figure-markdown_strict/unnamed-chunk-11-1.png)
+![](figure/unnamed-chunk-11-1.png)
 
 That’s a very busy plot! Let’s clean it up to make things easier to
 interpret. We can compute the partial factor scores by the mean network
@@ -311,7 +311,7 @@ difference if everything is plotted together).
 
     print(compromise_network_graph_out$zeMap + compromise_pfs_network$mapColByBlocks + ggtitle('Network level compromise map - Partial factor scores by task design'))
 
-![](covstatis_vignette_files/figure-markdown_strict/unnamed-chunk-12-1.png)
+![](figure/unnamed-chunk-12-1.png)
 
 ### Step 5: area of the convex hull
 
@@ -380,4 +380,4 @@ differentiated across tasks as a function of age.
     colnames(secondary_analyses)[14] <- "DefaultA"
     ggplot(secondary_analyses, aes(x = Age, y = DefaultA)) + geom_point() + geom_smooth(method = lm)
 
-![](covstatis_vignette_files/figure-markdown_strict/unnamed-chunk-14-1.png)
+![](figure/unnamed-chunk-14-1.png)
