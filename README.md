@@ -7,6 +7,17 @@ This repo also includes our Figures/Tables and manuscript file.
 Happy covSTATISing :)
 PS If you have any questions, don't hesitate to reach out!
 
+## Index
+
+bla bla bla
+
+[Page 1 with things](page1.md)
+
+bla bla
+
+[Page 2 with other things](page2.md)
+
+bla bla bla
 
 ## Setup
 
