@@ -1,0 +1,23 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Apply COV-STATIS to neuroimaging data",
+    "section": "",
+    "text": "With a list to\n\nPage 1\nPage 2\n\n\nlibrary(ggplot2)\nlibrary(dplyr)\n\n\nAttaching package: 'dplyr'\n\n\nThe following objects are masked from 'package:stats':\n\n    filter, lag\n\n\nThe following objects are masked from 'package:base':\n\n    intersect, setdiff, setequal, union\n\n\nThis is a Quarto website.\nTo learn more about Quarto websites visit https://quarto.org/docs/websites.\n\nmtcars %&gt;%\n  ggplot(aes(mpg, qsec)) + \n  stat_smooth(color = \"darkorchid4\", fill = \"skyblue\") + \n  geom_point(color = \"black\", shape = 3) + \n  theme_bw()\n\n`geom_smooth()` using method = 'loess' and formula = 'y ~ x'"
+  },
+  {
+    "objectID": "index.html#lets-begin",
+    "href": "index.html#lets-begin",
+    "title": "Apply COV-STATIS to neuroimaging data",
+    "section": "",
+    "text": "With a list to\n\nPage 1\nPage 2\n\n\nlibrary(ggplot2)\nlibrary(dplyr)\n\n\nAttaching package: 'dplyr'\n\n\nThe following objects are masked from 'package:stats':\n\n    filter, lag\n\n\nThe following objects are masked from 'package:base':\n\n    intersect, setdiff, setequal, union\n\n\nThis is a Quarto website.\nTo learn more about Quarto websites visit https://quarto.org/docs/websites.\n\nmtcars %&gt;%\n  ggplot(aes(mpg, qsec)) + \n  stat_smooth(color = \"darkorchid4\", fill = \"skyblue\") + \n  geom_point(color = \"black\", shape = 3) + \n  theme_bw()\n\n`geom_smooth()` using method = 'loess' and formula = 'y ~ x'"
+  }
+]

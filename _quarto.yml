@@ -1,9 +1,6 @@
 project:
   type: website
   output-dir: docs
-  render:
-    - page1.qmd
-    - page2.qmd
 
 website:
   title: "Apply COV-STATIS to neuroimaging data"

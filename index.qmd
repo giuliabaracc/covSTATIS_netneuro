@@ -7,8 +7,8 @@ title: "Apply COV-STATIS to neuroimaging data"
 
 With a list to
 
-  * [Page 1](page1.qmd)
-  * [Page 2](page2.qmd)
+  * [Page 1](pages/page1.qmd)
+  * [Page 2](pages/page2.qmd)
   
 
 ```{r}
