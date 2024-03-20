@@ -1,7 +1,5 @@
 ---
 title: "Application of covSTATIS to neuroimaging data"
-output: md_document
-keep: true
 ---
 
 ```{r setup, include=FALSE}
