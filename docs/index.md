@@ -5,11 +5,13 @@ nav_order: 1
 has_children: false
 ---
 
-## Blablabla
+## A section title will look like this
 
 
 This is where we put links and stuff... will this work ?
 
+  * [this is a link to Page 1](page1/page1.md)
+  * [and this is a link to Page 2](page2/page2.md)
 
 
 ## Setup

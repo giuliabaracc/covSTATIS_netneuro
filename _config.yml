@@ -1,3 +1,5 @@
+exclude: [README.md]
+  
 title: Apply COV-STATIS to neuroimaging data
 description: This is a companion website
 theme: jekyll-theme-minimal
