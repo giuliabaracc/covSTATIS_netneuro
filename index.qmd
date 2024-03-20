@@ -1,0 +1,31 @@
+---
+title: "Apply COV-STATIS to neuroimaging data"
+---
+
+
+## Let's begin
+
+With a list to
+
+  * [Page 1](page1.qmd)
+  * [Page 2](page2.qmd)
+  
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+
+```{r}
+mtcars %>%
+  ggplot(aes(mpg, qsec)) + 
+  stat_smooth(color = "darkorchid4", fill = "skyblue") + 
+  geom_point(color = "black", shape = 3) + 
+  theme_bw()
+
+```

@@ -1,0 +1,27 @@
+project:
+  type: website
+  output-dir: docs
+  render:
+    - page1.qmd
+    - page2.qmd
+
+website:
+  title: "Apply COV-STATIS to neuroimaging data"
+  description: This is a companion website to the paper [DOI]
+  favicon: logo.png
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: pages/page1.qmd
+        text: Page 1
+      - href: pages/page2.qmd
+        text: Page 2 avec plein de texte
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+editor: source
