@@ -1,0 +1,26 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "covSTATIS"
+  description: This is a companion website to the paper [DOI]
+  favicon: logo.png
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: pages/about.qmd
+        text: About
+      - href: pages/page1.qmd
+        text: Reproducible example
+      - href: pages/page2.qmd
+        text: Ongoing progress
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+editor: source
