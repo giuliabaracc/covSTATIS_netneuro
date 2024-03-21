@@ -3,17 +3,19 @@ project:
   output-dir: docs
 
 website:
-  title: "Apply COV-STATIS to neuroimaging data"
+  title: "covSTATIS"
   description: This is a companion website to the paper [DOI]
   favicon: logo.png
   navbar:
     left:
       - href: index.qmd
         text: Home
+      - href: pages/about.qmd
+        text: About
       - href: pages/page1.qmd
-        text: Page 1
+        text: Reproducible example
       - href: pages/page2.qmd
-        text: Page 2 avec plein de texte
+        text: Ongoing progress
 
 format:
   html:
