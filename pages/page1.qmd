@@ -3,7 +3,7 @@ title: "Apply regular covSTATIS to resting state fMRI data"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(message=FALSE, warning=FALSE, tidy.opts=list(width.cutoff=80),tidy=TRUE)
+knitr::opts_chunk$set(message=FALSE, warning=FALSE, tidy.opts=list(width.cutoff=80), tidy=TRUE, cache = TRUE)
 library(tidyr)
 library(dplyr)
 library(osfr)
