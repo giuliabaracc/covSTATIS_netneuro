@@ -11,7 +11,7 @@ website:
       - href: pages/page1.qmd
         text: Reproducible example
       - href: pages/page2.qmd
-        text: Ongoing progress
+        text: Other extensions
       - href: pages/about.qmd
         text: About
 

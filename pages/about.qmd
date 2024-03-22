@@ -1,16 +1,33 @@
 ---
 title: "About"
 ---
-
-This is where we present who we are and what we are passionnate about. 
-
+\newcommand\latexcode[1]{#1}
 
 # Giulia Baracchini
 
-short text ?
+I am finishing up my PhD in Cognitive Neuroscience at the Montreal Neurological Institute at McGill University in Montreal, Canada. I love asking questions about things I don't understand (all things brain) and trying to find answers that require exploration across desperate research fields. My primary research topic is fMRI BOLD signal variability. I basically investigate what all the variance in brain signals is and why it matters for brain function and organization. Given my approach to science, I would say this topic chose me. Variance in the variance! 
 
 # Ju-Chi Yu
 
-short text ?
+I am a post-doctoral research fellow at Centre for Addiction and Mental Health (CAMH). My work focuses on developing advanced multivariate methods to integrate and examine the relationships between structural and functional brain connectivity. Prior to joining CAMH, I received my Ph.D. in Cognition & Neuroscience from the University of Texas at Dallas, where she focused on developing advanced multivariate methods (with sparsification and for novel applications) to analyze neuroscience data (including behavioral data, genetics data, fMRI data, and resting-state fMRI data).
+
+# Website credit: Vincent Guillemot
+
+# Credit statement for the paper:
++ Giulia Baracchini: Conceptualization, Software, Formal Analysis, Data Curation, Writing - Original Draft, Writing - Review and Editing, Visualization. 
+
++ Ju-Chi Yu: Conceptualization, Software, Formal Analysis, Writing - Original Draft, Writing - Review and Editing. 
+
++ Jenny Rieck: Software, Formal Analysis, Data Curation, Writing - Review and Editing. 
+
++ Derek Beaton: Software, Writing - Review and Editing. 
+
++ Vincent Guillemot: Software, Writing - Review and Editing. 
+
++ Cheryl Grady: Resources, Writing - Review and Editing. 
+
++ Herv&eacute; Abdi: Software, Writing - Review and Editing. 
+
++ R. Nathan Spreng: Writing - Review and Editing, Supervision.
 
 

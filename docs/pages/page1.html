@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>covSTATIS - Apply regular covSTATIS to resting state fMRI data</title>
+<title>covSTATIS - Apply regular covSTATIS to task fMRI data</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -122,7 +122,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../pages/page2.html" rel="" target="">
- <span class="menu-text">Ongoing progress</span></a>
+ <span class="menu-text">Other extensions</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../pages/about.html" rel="" target="">
@@ -163,7 +163,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Apply regular covSTATIS to resting state fMRI data</h1>
+<h1 class="title">Apply regular covSTATIS to task fMRI data</h1>
 </div>
 
 
@@ -231,16 +231,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>The factor map of the RV space shows how similar the data tables are to each other.</p>
-<div class="cell" data-hash="page1_cache/html/unnamed-chunk-4_c45873d0d5cdcda7c59fca347cdaf9f7">
+<div class="cell" data-hash="page1_cache/html/unnamed-chunk-4_7927235f0526ed7000817c9f682e6535">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>rv.labels <span class="ot">&lt;-</span> <span class="fu">createxyLabels.gen</span>(<span class="at">x_axis =</span> <span class="dv">1</span>,</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                                <span class="at">y_axis =</span> <span class="dv">2</span>,</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                                <span class="at">lambda =</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>eigValues,</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                                <span class="at">tau =</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>tau)</span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="do">## factor map</span></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>rv.map <span class="ot">&lt;-</span> <span class="fu">createFactorMap</span>(covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>G,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                          <span class="at">title =</span> <span class="st">"The component space of the RV matrix"</span>)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>rv.map<span class="sc">$</span>zeMap_background <span class="sc">+</span> rv.map<span class="sc">$</span>zeMap_dots <span class="sc">+</span> rv.labels</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                          <span class="at">title =</span> <span class="st">"The component space of the RV matrix"</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                          <span class="at">col.background =</span> <span class="cn">NULL</span>, <span class="at">col.axes =</span> <span class="st">"#42376B"</span>,<span class="at">width.axes =</span> <span class="dv">1</span>, <span class="at">alpha.axes =</span> <span class="fl">0.5</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>rv.map<span class="sc">$</span>zeMap_background <span class="sc">+</span> rv.map<span class="sc">$</span>zeMap_dots <span class="sc">+</span> rv.labels <span class="sc">+</span> scatter.theme</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="page1_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -249,7 +250,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="step-2-compromise-space" class="level3">
 <h3 class="anchored" data-anchor-id="step-2-compromise-space">Step 2: Compromise space</h3>
 <p>Next, covSTATIS grabs the first eigenvector of this EVD on RV and scales it to sum to 1. The compromise matrix is built from the weighted sum of all data matrices and then also submitted to EVD. Let’s first visualize the compromise space/matrix.</p>
-<div class="cell" data-hash="page1_cache/html/unnamed-chunk-5_68cdcde4383ff2748159e4bb7d3631a4">
+<div class="cell" data-hash="page1_cache/html/unnamed-chunk-5_6b331b68f7119c7a7726fbe1af9935d8">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>net.col <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">unique</span>(atlas_labels[,<span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">4</span>)]))</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(net.col) <span class="ot">&lt;-</span> net.col<span class="sc">$</span>Network</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -273,7 +274,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.alignment =</span> <span class="st">"left"</span>,</span>
 <span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"The compromise"</span>)<span class="sc">$</span>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="page1_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+<p><img src="page1_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="960"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>TableGrob (7 x 4) "layout": 5 grobs
@@ -294,7 +295,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>Let’s now reconstruct a heatmap to explore the dimensions from the EVD on the compromise. Let’s start by visualizing the first two components (LV1, LV2).</p>
-<div class="cell" data-hash="page1_cache/html/unnamed-chunk-7_96453f5e92987d893725b7c68f8a6c7e">
+<div class="cell" data-hash="page1_cache/html/unnamed-chunk-7_73d6a4326ccce433342909533835b46e">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>covstatis_corrmat_lv1_lv2 <span class="ot">&lt;-</span> <span class="fu">tcrossprod</span>(covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F[,<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>)])</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">superheat</span>(covstatis_corrmat_lv1_lv2,</span>
@@ -316,12 +317,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.alignment =</span> <span class="st">"left"</span>,</span>
 <span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Rebuilt Heatmap for LV1 and LV2"</span>)<span class="sc">$</span>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="page1_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+<p><img src="page1_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="960"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>TableGrob (7 x 4) "layout": 5 grobs
   z     cells   name                     grob
-1 1 (3-3,3-3)  panel gTree[panel-1.gTree.314]
+1 1 (3-3,3-3)  panel gTree[panel-1.gTree.108]
 2 2 (6-6,3-3) layout           gtable[layout]
 3 3 (3-3,2-2) layout           gtable[layout]
 4 4 (4-4,3-3) layout           gtable[layout]
@@ -332,7 +333,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="step-3-global-factor-scores-from-compromise-space" class="level3">
 <h3 class="anchored" data-anchor-id="step-3-global-factor-scores-from-compromise-space">Step 3: global factor scores from compromise space</h3>
 <p>The compromise space shows us how regional connectivity values relate to each other across all data tables (individuals and conditions). Each point in the compromise space represents a global factor score: a different ROI from our functional connectivity matrices, colored by their network membership. The closer points are, the stronger the functional connectivity across the entire dataset.</p>
-<div class="cell" data-hash="page1_cache/html/unnamed-chunk-8_72338bf0992d900c970fdef07b274b07">
+<div class="cell" data-hash="page1_cache/html/unnamed-chunk-8_2a347bb910016326432051a08ec124ef">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>network_labels <span class="ot">&lt;-</span> <span class="fu">unique</span>(atlas_labels<span class="sc">$</span>Network)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>network_colors <span class="ot">&lt;-</span> <span class="fu">unique</span>(atlas_labels<span class="sc">$</span>Network_color)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -344,14 +345,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">axis1 =</span> h_axis, <span class="at">axis2 =</span> v_axis,</span>
 <span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">title =</span> <span class="st">'Compromise ROI Space'</span>,</span>
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">col.points =</span> atlas_labels<span class="sc">$</span>Network_color,</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">alpha.points=</span>.<span class="dv">6</span>, <span class="at">cex=</span><span class="dv">3</span>) </span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">alpha.points=</span>.<span class="dv">6</span>, <span class="at">cex=</span><span class="dv">3</span>,</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">col.background =</span> <span class="cn">NULL</span>, <span class="at">col.axes =</span> <span class="st">"#42376B"</span>,<span class="at">width.axes =</span> <span class="dv">1</span>, <span class="at">alpha.axes =</span> <span class="fl">0.5</span>) </span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span> scatter.theme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="page1_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>We can also compute the average of all the ROIs (i.e., barycenter) for each <em>a priori</em> network to get a coarser network compromise map.</p>
-<div class="cell" data-hash="page1_cache/html/unnamed-chunk-9_14e3f7a61d5975f9722624ed9380b60d">
+<div class="cell" data-hash="page1_cache/html/unnamed-chunk-9_720a5f8581ae767c2ff83b44b8458b2d">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>network_mean_F <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)),<span class="dv">2</span>,<span class="cf">function</span>(x){x<span class="sc">/</span><span class="fu">sum</span>(x)})) <span class="sc">%*%</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">row.names</span>(network_mean_F) <span class="ot">&lt;-</span> network_labels</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -359,16 +361,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">axis1 =</span> h_axis,<span class="at">axis2 =</span> v_axis, </span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">title =</span> <span class="st">"Compromise map for network-level barycenters"</span>,</span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">col.points =</span> network_colors, <span class="at">col.labels =</span> network_colors,</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">alpha.points=</span>.<span class="dv">8</span>, <span class="at">cex=</span><span class="dv">5</span>, <span class="at">text.cex=</span><span class="dv">4</span>, <span class="at">alpha.labels=</span>.<span class="dv">8</span>, <span class="at">pch=</span><span class="dv">18</span>)</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_network_graph_out<span class="sc">$</span>zeMap <span class="sc">+</span> compromise_network_graph_out<span class="sc">$</span>zeMap_dots)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">alpha.points=</span>.<span class="dv">8</span>, <span class="at">cex=</span><span class="dv">5</span>, <span class="at">text.cex=</span><span class="dv">4</span>, <span class="at">alpha.labels=</span>.<span class="dv">8</span>, <span class="at">pch=</span><span class="dv">18</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">col.background =</span> <span class="cn">NULL</span>, <span class="at">col.axes =</span> <span class="st">"#42376B"</span>,<span class="at">width.axes =</span> <span class="dv">1</span>, <span class="at">alpha.axes =</span> <span class="fl">0.5</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_network_graph_out<span class="sc">$</span>zeMap <span class="sc">+</span> compromise_network_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span> scatter.theme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="page1_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>Both the ROI-level and network-level factor maps can be overlaid to show how individuals ROIs cluster around their respective networks, for the whole sample.</p>
-<div class="cell" data-hash="page1_cache/html/unnamed-chunk-10_a81d7640236631d00870fe22fefd05e7">
+<div class="cell" data-hash="page1_cache/html/unnamed-chunk-10_af714e9ef96be896da232bf506dcfbaf">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span> </span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>        compromise_network_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span> compromise_network_graph_out<span class="sc">$</span>zeMap_text)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>        compromise_network_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span> compromise_network_graph_out<span class="sc">$</span>zeMap_text <span class="sc">+</span> scatter.theme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="page1_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -385,7 +388,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>condition_design[<span class="fu">grep</span>(<span class="st">"*_nbk_2b"</span>,<span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]])]<span class="ot">&lt;-</span><span class="st">"2b"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Now we can compute and plot the partial maps for the different n-back conditions, for each ROI. This plot shows how much the connectivity for each ROI is similar/different across task conditions (closer to the ROI center: more similar; farther from ROI center: more different).</p>
-<div class="cell" data-hash="page1_cache/html/unnamed-chunk-12_dc01d1b55380fefd0bbca478ca2c41c4">
+<div class="cell" data-hash="page1_cache/html/unnamed-chunk-12_b5eba0336596314ecb12b316fb622def">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Compute the Partial map</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>F_j     <span class="ot">&lt;-</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>PartialF</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>alpha_j <span class="ot">&lt;-</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>alpha</span>
@@ -417,13 +420,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">shape.points =</span> <span class="dv">20</span>)</span>
 <span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span></span>
-<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>  compromise_pfs<span class="sc">$</span>mapColByBlocks <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">'Compromise map - Partial factor scores by task design'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>  compromise_pfs<span class="sc">$</span>mapColByBlocks <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">'Compromise map - Partial factor scores by task design'</span>) <span class="sc">+</span> scatter.theme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="page1_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>That’s a very busy plot! Let’s clean it up to make things easier to interpret. We can compute the partial factor scores by the mean network compromise. Similar to our ROI plot, for each network, the more spread out the conditions are from the network mean, the more diverse the functional connectivity is across task conditions. Tip: if you have groups, sometimes it is helpful to separate partial factor scores per group and plot them individually (e.g., you may not be able to see a difference if everything is plotted together).</p>
-<div class="cell" data-hash="page1_cache/html/unnamed-chunk-13_4cd7490d2155c2fcfae87fe35d72118b">
+<div class="cell" data-hash="page1_cache/html/unnamed-chunk-13_f4587a26a4f0770bd7b3ea20855899bf">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>F_k_network<span class="ot">&lt;-</span><span class="fu">array</span>(<span class="cn">NA</span>, <span class="at">dim=</span><span class="fu">c</span>(<span class="fu">length</span>(network_labels), <span class="fu">dim</span>(F_k)[<span class="dv">2</span>], <span class="fu">dim</span>(F_k)[<span class="dv">3</span>]))</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dimnames</span>(F_k_network)<span class="ot">&lt;-</span><span class="fu">list</span>(network_labels, <span class="fu">dimnames</span>(F_k)[[<span class="dv">2</span>]], <span class="fu">dimnames</span>(F_k)[[<span class="dv">3</span>]])</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -440,7 +443,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">names4Partial =</span> <span class="fu">dimnames</span>(F_k_network)[[<span class="dv">3</span>]], <span class="co"># </span></span>
 <span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">size.labels=</span><span class="fl">3.5</span>, <span class="at">size.points =</span> <span class="dv">2</span>,<span class="at">shape.points=</span><span class="dv">20</span>)</span>
 <span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_network_graph_out<span class="sc">$</span>zeMap <span class="sc">+</span> compromise_pfs_network<span class="sc">$</span>mapColByBlocks <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">'Network level compromise map - Partial factor scores by task design'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_network_graph_out<span class="sc">$</span>zeMap <span class="sc">+</span> compromise_pfs_network<span class="sc">$</span>mapColByBlocks <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">'Network level compromise map - Partial factor scores by task design'</span>) <span class="sc">+</span> scatter.theme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="page1_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
 </div>

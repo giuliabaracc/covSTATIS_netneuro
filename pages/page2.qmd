@@ -1,8 +1,14 @@
 ---
-title: "Under development"
+title: "Other extensions"
 ---
 
+Here are some extension techniques that are under development:
 
-We intend to post here new versions of the analysis of resting state fMRI data. 
++ [Sparse covSTATIS](https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/full/10.1002/cem.3443) by Ju-Chi Yu, Ph.D.
+  + [Code for the paper](https://github.com/juchiyu/sDiSTATISpaper)
+  + [The SPAFAC Package](https://github.com/juchiyu/SPAFAC) - under testing for sparse covSTATIS
 
-Add a link
++ [K+1 covSTATIS](https://github.com/jennyrieck/C-MARINeR) by Derek Beaton, Ph.D. & Jenny Reick, Ph.D.
+
++ [Discriminant and hierarchical DiSTATIS](https://github.com/michaelkriegsman/DiDiSTATIS) by Michale Kreigsman, Ph.D.
+
