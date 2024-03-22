@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>covSTATIS - Apply regular covSTATIS to resting state fMRI data</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../logo.png" rel="icon" type="image/png">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">covSTATIS</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html" rel="" target="">
+ <span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="../pages/page1.html" rel="" target="" aria-current="page">
+ <span class="menu-text">Reproducible example</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../pages/page2.html" rel="" target="">
+ <span class="menu-text">Ongoing progress</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../pages/about.html" rel="" target="">
+ <span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <div class="quarto-navbar-tools ms-auto">
+</div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#setup" id="toc-setup" class="nav-link active" data-scroll-target="#setup">Setup</a></li>
+  <li><a href="#data-info" id="toc-data-info" class="nav-link" data-scroll-target="#data-info">Data info</a></li>
+  <li><a href="#read-in-the-data" id="toc-read-in-the-data" class="nav-link" data-scroll-target="#read-in-the-data">Read in the data</a></li>
+  <li><a href="#run-covstatis" id="toc-run-covstatis" class="nav-link" data-scroll-target="#run-covstatis">Run covSTATIS</a>
+  <ul class="collapse">
+  <li><a href="#step-1-rv-similarity-matrix" id="toc-step-1-rv-similarity-matrix" class="nav-link" data-scroll-target="#step-1-rv-similarity-matrix">Step 1: RV similarity matrix</a></li>
+  <li><a href="#step-2-compromise-space" id="toc-step-2-compromise-space" class="nav-link" data-scroll-target="#step-2-compromise-space">Step 2: Compromise space</a></li>
+  <li><a href="#step-3-global-factor-scores-from-compromise-space" id="toc-step-3-global-factor-scores-from-compromise-space" class="nav-link" data-scroll-target="#step-3-global-factor-scores-from-compromise-space">Step 3: global factor scores from compromise space</a></li>
+  <li><a href="#step-4-partial-factor-scores-from-compromise-space" id="toc-step-4-partial-factor-scores-from-compromise-space" class="nav-link" data-scroll-target="#step-4-partial-factor-scores-from-compromise-space">Step 4: partial factor scores from compromise space</a></li>
+  <li><a href="#step-5-area-of-the-convex-hull" id="toc-step-5-area-of-the-convex-hull" class="nav-link" data-scroll-target="#step-5-area-of-the-convex-hull">Step 5: area of the convex hull</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Apply regular covSTATIS to resting state fMRI data</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
+<p>All data used in this tutorial are stored at: https://github.com/giuliabaracc/covSTATIS_netneuro/tree/main/Data. The “Data” repo contains: 144x3 functional connectivity text files (n=144, 3=task conditions, 0-,1-,2-back), a “participants_ages.csv” file with participants info and an atlas labels file “Schaefer_100parcel_17network_labels.csv”.</p>
+</section>
+<section id="data-info" class="level2">
+<h2 class="anchored" data-anchor-id="data-info">Data info</h2>
+<p>After standard preprocessing (see Rieck et al., 2021 Data in Brief), each individual’s voxel-time series were parcellated, for each task condition, using the standard 100 region-17 network Schaefer atlas (Schaefer et al., 2018 Cerebral Cortex). For each participant and condition, Pearson’s correlations were quantified between region pairs, to ultimately obtain 100x100x3 functional connectivity matrices for each individual.</p>
+</section>
+<section id="read-in-the-data" class="level2">
+<h2 class="anchored" data-anchor-id="read-in-the-data">Read in the data</h2>
+<p>The first step is to read in our connectivity matrices to form a 3D array (= ‘X’ here below) for analysis with covSTATIS. In this tutorial, the 3D array dimensionality is 100 x 100 x 144 x 3 (ROI x ROI x N x Task condition).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>atlas_prefix <span class="ot">&lt;-</span> <span class="st">"Schaefer100_17"</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>atlas_labels <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"../Data/Schaefer_100parcel_17network_labels.csv"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>atlas_labels<span class="sc">$</span>Network <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(atlas_labels<span class="sc">$</span>Network)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>demog_in <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"../Data/participant_ages.csv"</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>ids <span class="ot">&lt;-</span> demog_in<span class="sc">$</span>subjectID</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Read in FC .txt files and reshape into 3D array with size n_roi x n_roi x</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="do">## n_sub*n_conditions (i.e. n_fns)</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>all_fns <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path =</span> <span class="st">"../Data"</span>, <span class="at">pattern =</span> <span class="fu">paste0</span>(<span class="st">"^"</span>, atlas_prefix, <span class="st">".*txt"</span>),</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>X_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="at">X =</span> all_fns, <span class="at">FUN =</span> read_delim, <span class="at">delim =</span> <span class="st">"</span><span class="sc">\t</span><span class="st">"</span>, <span class="at">col_names =</span> F, <span class="at">col_type =</span> <span class="fu">list</span>(<span class="at">.default =</span> <span class="fu">col_double</span>()))</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="fu">unlist</span>(X_list), <span class="fu">c</span>(<span class="fu">dim</span>(X_list[[<span class="dv">1</span>]]), <span class="fu">length</span>(X_list)))  <span class="co">#our 3D array</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(X_list)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="do">## Label rows and columns with ROI label</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(<span class="fu">grep</span>(<span class="st">"Schaefer"</span>, atlas_prefix) <span class="sc">&gt;</span> <span class="dv">0</span>)) {</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rownames</span>(X) <span class="ot">&lt;-</span> atlas_labels<span class="sc">$</span>ROI_label</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">colnames</span>(X) <span class="ot">&lt;-</span> atlas_labels<span class="sc">$</span>ROI_label</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="do">## Label 3rd dimension with subject and task information (modified from</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="do">## filenames)</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]] <span class="ot">&lt;-</span> all_fns <span class="sc">%&gt;%</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gsub</span>(<span class="at">pattern =</span> <span class="st">".txt"</span>, <span class="at">replacement =</span> <span class="st">""</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gsub</span>(<span class="at">pattern =</span> <span class="fu">paste0</span>(atlas_prefix, <span class="st">"_"</span>), <span class="at">replacement =</span> <span class="st">""</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="run-covstatis" class="level2">
+<h2 class="anchored" data-anchor-id="run-covstatis">Run covSTATIS</h2>
+<p>Now that we have created our 3D data array (X), we can run covSTATIS. Since we are dealing with correlation values, the Distance flag should be set to FALSE. The nfact2keep flag denotes the number of components we want to keep (the bigger the value, the slower the computations).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>covstatis_res <span class="ot">&lt;-</span> <span class="fu">distatis</span>(X, <span class="at">Distance =</span> F, <span class="at">nfact2keep =</span> <span class="dv">10</span>, <span class="at">compact =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="step-1-rv-similarity-matrix" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-rv-similarity-matrix">Step 1: RV similarity matrix</h3>
+<p>The first operation covSTATIS computes is the generation of an RV similarity matrix. The RV matrix quantifies the pairwise similarity among all data tables (squared Pearson’s correlation), irrespective of their rotation or scaling. The RV matrix then undergoes eigenvalue decomposition (EVD). The resulting first component best represents the common pattern across all tables, and its first eigenvector quantifies how similar each table is to this common pattern.</p>
+<p>Let’s visualize the results of this EVD on the RV matrix. The Scree plot shows how much variance is explained by each component/dimension. Ideally, there will be one strong component (as is the case with these data) indicating a strong coherence in the general network organization across all observations.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">PlotScree</span>(<span class="at">ev =</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>eigValues, <span class="at">title =</span> <span class="st">"RV-map: Explained Variance per Dimension"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="page1_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>The factor map of the RV space shows how similar the data tables are to each other.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>rv.labels <span class="ot">&lt;-</span> <span class="fu">createxyLabels.gen</span>(<span class="at">x_axis =</span> <span class="dv">1</span>, <span class="at">y_axis =</span> <span class="dv">2</span>, <span class="at">lambda =</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>eigValues,</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">tau =</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>tau)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="do">## factor map</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>rv.map <span class="ot">&lt;-</span> <span class="fu">createFactorMap</span>(covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>G, <span class="at">title =</span> <span class="st">"The component space of the RV matrix"</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>rv.map<span class="sc">$</span>zeMap_background <span class="sc">+</span> rv.map<span class="sc">$</span>zeMap_dots <span class="sc">+</span> rv.labels</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="page1_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="step-2-compromise-space" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-compromise-space">Step 2: Compromise space</h3>
+<p>Next, covSTATIS grabs the first eigenvector of this EVD on RV and scales it to sum to 1. The compromise matrix is built from the weighted sum of all data matrices and then also submitted to EVD. Let’s first visualize the compromise space/matrix.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>net.col <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">unique</span>(atlas_labels[,<span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">4</span>)]))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(net.col) <span class="ot">&lt;-</span> net.col<span class="sc">$</span>Network</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>col.pal <span class="ot">&lt;-</span> <span class="fu">brewer.pal</span>(<span class="dv">11</span>, <span class="st">"RdBu"</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">superheat</span>(covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>Splus,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">membership.cols =</span> atlas_labels<span class="sc">$</span>Network,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">membership.rows =</span> atlas_labels<span class="sc">$</span>Network,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">clustering.method =</span> <span class="cn">NULL</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.lim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.1</span>,<span class="fl">0.1</span>),</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.pal =</span> <span class="fu">rev</span>(<span class="fu">brewer.pal</span>(<span class="dv">11</span>, <span class="st">"RdBu"</span>)),</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.pal.values =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.45</span>,<span class="fl">0.5</span>,<span class="fl">0.55</span>,<span class="dv">1</span>),</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.size =</span> <span class="fl">0.08</span>,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.size =</span> <span class="fl">0.05</span>,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">y.axis.reverse =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.col =</span> net.col[<span class="fu">levels</span>(atlas_labels<span class="sc">$</span>Network),<span class="st">"Network_color"</span>], <span class="co"># order by community name</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.col =</span>  net.col[<span class="fu">levels</span>(atlas_labels<span class="sc">$</span>Network), <span class="st">"Network_color"</span>],</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.size =</span> <span class="dv">3</span>,</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.text.size =</span> <span class="dv">2</span>,</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.col =</span> <span class="st">"black"</span>,</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.text.col =</span> <span class="st">"black"</span>,</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.alignment =</span> <span class="st">"left"</span>,</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"The compromise"</span>)<span class="sc">$</span>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="page1_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>TableGrob (7 x 4) "layout": 5 grobs
+  z     cells   name                     grob
+1 1 (3-3,3-3)  panel gTree[panel-1.gTree.105]
+2 2 (6-6,3-3) layout           gtable[layout]
+3 3 (3-3,2-2) layout           gtable[layout]
+4 4 (4-4,3-3) layout           gtable[layout]
+5 5 (2-2,3-3) layout           gtable[layout]</code></pre>
+</div>
+</div>
+<p>Next, the compromise undergoes EVD. Let’s visualize its scree plot:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">PlotScree</span>(<span class="at">ev =</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>eigValues, <span class="at">title =</span> <span class="st">"Compromise: Explained Variance per Dimension"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="page1_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Let’s now reconstruct a heatmap to explore the dimensions from the EVD on the compromise. Let’s start by visualizing the first two components (LV1, LV2).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>covstatis_corrmat_lv1_lv2 <span class="ot">&lt;-</span> <span class="fu">tcrossprod</span>(covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F[,<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>)])</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">superheat</span>(covstatis_corrmat_lv1_lv2,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">membership.cols =</span> atlas_labels<span class="sc">$</span>Network,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">membership.rows =</span> atlas_labels<span class="sc">$</span>Network,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">clustering.method =</span> <span class="cn">NULL</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.lim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.1</span>,<span class="fl">0.1</span>),</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.pal =</span> <span class="fu">rev</span>(<span class="fu">brewer.pal</span>(<span class="dv">11</span>, <span class="st">"RdBu"</span>)),</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.pal.values =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.45</span>,<span class="fl">0.5</span>,<span class="fl">0.55</span>,<span class="dv">1</span>),</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.size =</span> <span class="fl">0.08</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.size =</span> <span class="fl">0.05</span>,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">y.axis.reverse =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.col =</span> net.col[<span class="fu">levels</span>(atlas_labels<span class="sc">$</span>Network),<span class="st">"Network_color"</span>], <span class="co"># order by community name</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.col =</span>  net.col[<span class="fu">levels</span>(atlas_labels<span class="sc">$</span>Network), <span class="st">"Network_color"</span>],</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.size =</span> <span class="dv">3</span>,</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.text.size =</span> <span class="dv">2</span>,</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.col =</span> <span class="st">"black"</span>,</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.text.col =</span> <span class="st">"black"</span>,</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.alignment =</span> <span class="st">"left"</span>,</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Rebuilt Heatmap for LV1 and LV2"</span>)<span class="sc">$</span>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="page1_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>TableGrob (7 x 4) "layout": 5 grobs
+  z     cells   name                     grob
+1 1 (3-3,3-3)  panel gTree[panel-1.gTree.310]
+2 2 (6-6,3-3) layout           gtable[layout]
+3 3 (3-3,2-2) layout           gtable[layout]
+4 4 (4-4,3-3) layout           gtable[layout]
+5 5 (2-2,3-3) layout           gtable[layout]</code></pre>
+</div>
+</div>
+</section>
+<section id="step-3-global-factor-scores-from-compromise-space" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-global-factor-scores-from-compromise-space">Step 3: global factor scores from compromise space</h3>
+<p>The compromise space shows us how regional connectivity values relate to each other across all data tables (individuals and conditions). Each point in the compromise space represents a global factor score: a different ROI from our functional connectivity matrices, colored by their network membership. The closer points are, the stronger the functional connectivity across the entire dataset.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>network_labels <span class="ot">&lt;-</span> <span class="fu">unique</span>(atlas_labels<span class="sc">$</span>Network)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>network_colors <span class="ot">&lt;-</span> <span class="fu">unique</span>(atlas_labels<span class="sc">$</span>Network_color)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># To get graphs with axes 1 and 2:</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>h_axis <span class="ot">&lt;-</span> <span class="dv">1</span>  <span class="co"># component to plot on x-axis</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>v_axis <span class="ot">&lt;-</span> <span class="dv">2</span>  <span class="co"># component to plot on y-axis</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>compromise_graph_out <span class="ot">&lt;-</span> <span class="fu">createFactorMap</span>(covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F, <span class="at">axis1 =</span> h_axis,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis2 =</span> v_axis, <span class="at">title =</span> <span class="st">"Compromise ROI Space"</span>, <span class="at">col.points =</span> atlas_labels<span class="sc">$</span>Network_color,</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha.points =</span> <span class="fl">0.6</span>, <span class="at">cex =</span> <span class="dv">3</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="page1_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>We can also compute the average of all the ROIs (i.e., barycenter) for each <em>a priori</em> network to get a coarser network compromise map.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>network_mean_F <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)), <span class="dv">2</span>, <span class="cf">function</span>(x) {</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    x<span class="sc">/</span><span class="fu">sum</span>(x)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>})) <span class="sc">%*%</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">row.names</span>(network_mean_F) <span class="ot">&lt;-</span> network_labels</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>compromise_network_graph_out <span class="ot">&lt;-</span> <span class="fu">createFactorMap</span>(network_mean_F, <span class="at">axis1 =</span> h_axis, <span class="at">axis2 =</span> v_axis,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Compromise map for network-level barycenters"</span>, <span class="at">col.points =</span> network_colors,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">col.labels =</span> network_colors, <span class="at">alpha.points =</span> <span class="fl">0.8</span>, <span class="at">cex =</span> <span class="dv">5</span>, <span class="at">text.cex =</span> <span class="dv">4</span>, <span class="at">alpha.labels =</span> <span class="fl">0.8</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">pch =</span> <span class="dv">18</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_network_graph_out<span class="sc">$</span>zeMap <span class="sc">+</span> compromise_network_graph_out<span class="sc">$</span>zeMap_dots)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="page1_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Both the ROI-level and network-level factor maps can be overlaid to show how individuals ROIs cluster around their respective networks, for the whole sample.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span> compromise_network_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    compromise_network_graph_out<span class="sc">$</span>zeMap_text)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="page1_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="step-4-partial-factor-scores-from-compromise-space" class="level3">
+<h3 class="anchored" data-anchor-id="step-4-partial-factor-scores-from-compromise-space">Step 4: partial factor scores from compromise space</h3>
+<p>Using partial projection, we can now project each condition back onto the compromise space (i.e., partial factor scores) to understand how each correlation matrix fits in the compromise (or sample-level) space.</p>
+<p>To do that, we should first create a design matrix specifying which slice in our X cube corresponds to which n-back condition:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>condition_design <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"character"</span>, <span class="fu">dim</span>(X)[<span class="dv">3</span>])</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>condition_design[<span class="fu">grep</span>(<span class="st">"*_nbk_0b"</span>, <span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]])] <span class="ot">&lt;-</span> <span class="st">"0b"</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>condition_design[<span class="fu">grep</span>(<span class="st">"*_nbk_1b"</span>, <span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]])] <span class="ot">&lt;-</span> <span class="st">"1b"</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>condition_design[<span class="fu">grep</span>(<span class="st">"*_nbk_2b"</span>, <span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]])] <span class="ot">&lt;-</span> <span class="st">"2b"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we can compute and plot the partial maps for the different n-back conditions, for each ROI. This plot shows how much the connectivity for each ROI is similar/different across task conditions (closer to the ROI center: more similar; farther from ROI center: more different).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Compute the Partial map</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>F_j     <span class="ot">&lt;-</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>PartialF</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>alpha_j <span class="ot">&lt;-</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>alpha</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create the groups based on design</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>code4Groups <span class="ot">&lt;-</span> <span class="fu">unique</span>(condition_design)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>nK <span class="ot">&lt;-</span> <span class="fu">length</span>(code4Groups)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># initialize F_K and alpha_k</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>F_k <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim =</span> <span class="fu">c</span>(<span class="fu">dim</span>(F_j)[[<span class="dv">1</span>]], <span class="fu">dim</span>(F_j)[[<span class="dv">2</span>]],nK))</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="fu">dimnames</span>(F_k) <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">dimnames</span>(F_j)[[<span class="dv">1</span>]], </span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">dimnames</span>(F_j)[[<span class="dv">2</span>]], code4Groups)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>alpha_k <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, nK)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(alpha_k) <span class="ot">&lt;-</span> code4Groups</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>Fa_j <span class="ot">&lt;-</span> F_j</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">dim</span>(F_j)[[<span class="dv">3</span>]]){ Fa_j[,,j]  <span class="ot">&lt;-</span> F_j[,,j] <span class="sc">*</span> alpha_j[j] }</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nK){</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  lindex <span class="ot">&lt;-</span> condition_design <span class="sc">==</span> code4Groups[k]</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  alpha_k[k] <span class="ot">&lt;-</span> <span class="fu">sum</span>(alpha_j[lindex])</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  F_k[,,k] <span class="ot">&lt;-</span> (<span class="dv">1</span><span class="sc">/</span>alpha_k[k])<span class="sc">*</span><span class="fu">apply</span>(Fa_j[,,lindex],<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),sum)</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>compromise_pfs <span class="ot">&lt;-</span> <span class="fu">createPartialFactorScoresMap</span>(</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">factorScores =</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F,      </span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">partialFactorScores =</span> F_k,  </span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">axis1 =</span> <span class="dv">1</span>, <span class="at">axis2 =</span> <span class="dv">2</span>,</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors4Items =</span> <span class="fu">as.vector</span>(atlas_labels<span class="sc">$</span>Network_color), </span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors4Blocks =</span> <span class="fu">c</span>(<span class="st">"yellowgreen"</span>, <span class="st">"olivedrab"</span>, <span class="st">"darkgreen"</span>),</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">names4Partial =</span> <span class="fu">dimnames</span>(F_k)[[<span class="dv">3</span>]], <span class="co"># </span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">shape.points =</span> <span class="dv">20</span>)</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span></span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>  compromise_pfs<span class="sc">$</span>mapColByBlocks <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">'Compromise map - Partial factor scores by task design'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="page1_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>That’s a very busy plot! Let’s clean it up to make things easier to interpret. We can compute the partial factor scores by the mean network compromise. Similar to our ROI plot, for each network, the more spread out the conditions are from the network mean, the more diverse the functional connectivity is across task conditions. Tip: if you have groups, sometimes it is helpful to separate partial factor scores per group and plot them individually (e.g., you may not be able to see a difference if everything is plotted together).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>F_k_network<span class="ot">&lt;-</span><span class="fu">array</span>(<span class="cn">NA</span>, <span class="at">dim=</span><span class="fu">c</span>(<span class="fu">length</span>(network_labels), <span class="fu">dim</span>(F_k)[<span class="dv">2</span>], <span class="fu">dim</span>(F_k)[<span class="dv">3</span>]))</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dimnames</span>(F_k_network)<span class="ot">&lt;-</span><span class="fu">list</span>(network_labels, <span class="fu">dimnames</span>(F_k)[[<span class="dv">2</span>]], <span class="fu">dimnames</span>(F_k)[[<span class="dv">3</span>]])</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">dim</span>(F_k_network)[<span class="dv">3</span>]){</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  F_k_network[,,i]<span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)),<span class="dv">2</span>,<span class="cf">function</span>(x){x<span class="sc">/</span><span class="fu">sum</span>(x)})) <span class="sc">%*%</span> F_k[,,i]</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>compromise_pfs_network <span class="ot">&lt;-</span> <span class="fu">createPartialFactorScoresMap</span>(</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">factorScores =</span> network_mean_F,      </span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">partialFactorScores =</span> F_k_network,  </span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">axis1 =</span> <span class="dv">1</span>, <span class="at">axis2 =</span> <span class="dv">2</span>,</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors4Items =</span> network_colors, </span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors4Blocks =</span> <span class="fu">c</span>(<span class="st">"yellowgreen"</span>, <span class="st">"olivedrab"</span>, <span class="st">"darkgreen"</span>),</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">names4Partial =</span> <span class="fu">dimnames</span>(F_k_network)[[<span class="dv">3</span>]], <span class="co"># </span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">size.labels=</span><span class="fl">3.5</span>, <span class="at">size.points =</span> <span class="dv">2</span>,<span class="at">shape.points=</span><span class="dv">20</span>)</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_network_graph_out<span class="sc">$</span>zeMap <span class="sc">+</span> compromise_pfs_network<span class="sc">$</span>mapColByBlocks <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">'Network level compromise map - Partial factor scores by task design'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="page1_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="step-5-area-of-the-convex-hull" class="level3">
+<h3 class="anchored" data-anchor-id="step-5-area-of-the-convex-hull">Step 5: area of the convex hull</h3>
+<p>We can now compute the area of the convex hull around the partial factor scores for each individual at the network-level (NB: this can be done at the regional level too). Area of the hull scores can be seen as “task condition differentiation scores”: the larger the area of the hull, the more diverse the network functional connectivity is across task conditions (more distant from mean); the smaller the area of the hull, the more homogenous the functional connectivity across 0-,1-, and 2-back. Note: area of the hull values are arbitrary so you can go ahead and normalize them. Make sure you have at least 4 points to build the area of the hull (here you’ll see warnings cause some networks have less than 4 observations/ROIs).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Create empty matrix to put results in, should be # participants (rows) by #</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="do">## networks (columns)</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>task_diff_network_level <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">matrix</span>(<span class="dv">0</span>, <span class="fu">length</span>(ids), <span class="fu">length</span>(network_labels)))</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(task_diff_network_level) <span class="ot">&lt;-</span> ids</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(task_diff_network_level) <span class="ot">&lt;-</span> network_labels</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>partialF <span class="ot">&lt;-</span> covstatis_res<span class="sc">$</span>res4Splu<span class="sc">$</span>PartialF</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(ids)) {</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    <span class="do">### Grab all the partialF values associated with this subject for LV1</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    this_lv1 <span class="ot">&lt;-</span> partialF[, <span class="dv">1</span>, <span class="fu">grep</span>(<span class="fu">paste0</span>(ids[i], <span class="st">"_*"</span>), <span class="fu">dimnames</span>(partialF)[[<span class="dv">3</span>]])]</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="do">## Transform the node-level partialF to network-level partialF for LV1</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    this_lv1_network <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)),</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>        <span class="dv">2</span>, <span class="cf">function</span>(x) {</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>            x<span class="sc">/</span><span class="fu">sum</span>(x)</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>        })) <span class="sc">%*%</span> <span class="fu">as.matrix</span>(this_lv1)</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="do">### Grab all the partialF values associated with this P for LV2</span></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    this_lv2 <span class="ot">&lt;-</span> partialF[, <span class="dv">2</span>, <span class="fu">grep</span>(<span class="fu">paste0</span>(ids[i], <span class="st">"_*"</span>), <span class="fu">dimnames</span>(partialF)[[<span class="dv">3</span>]])]</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>    <span class="do">## Transform the node-level partialF to network-level partialF for LV2</span></span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>    this_lv2_network <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)),</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>        <span class="dv">2</span>, <span class="cf">function</span>(x) {</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>            x<span class="sc">/</span><span class="fu">sum</span>(x)</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>        })) <span class="sc">%*%</span> <span class="fu">as.matrix</span>(this_lv2)</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>    <span class="do">## Loop through each network, get the LV1 and LV2 points, and compute the</span></span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>    <span class="do">## area of the hull around the points</span></span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (n <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(network_labels)) {</span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>        hull_pts <span class="ot">&lt;-</span> <span class="fu">chull</span>(this_lv1_network[n, ], this_lv2_network[n, ])  <span class="co">#here you can play with the flag 'percentage' and include either all points (like done here) or e.g., 95% of them in which case you'd write 'percentage=0.95'</span></span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>        this_hull_coords <span class="ot">&lt;-</span> <span class="fu">cbind</span>(this_lv1_network[n, hull_pts], this_lv2_network[n,</span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>            hull_pts])</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>        this_poly_area <span class="ot">&lt;-</span> <span class="fu">Polygon</span>(this_hull_coords, <span class="at">hole =</span> F)<span class="sc">@</span>area</span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>        task_diff_network_level[i, n] <span class="ot">&lt;-</span> this_poly_area</span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a><span class="co"># print(task_diff_network_level) #you can go ahead and save this output and</span></span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a><span class="co"># relate it to e.g., behavior</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Area of the hull scores can be used in secondary analyses, such as brain-behavior correlation. Since our sample is an adult lifespan sample, we can relate area of the hull scores to age. This plot shows how Default A functional connectivity becomes more homogeneous/less differentiated across tasks as a function of age.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>secondary_analyses <span class="ot">&lt;-</span> <span class="fu">cbind</span>(demog_in<span class="sc">$</span>Age, task_diff_network_level)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>secondary_analyses <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(secondary_analyses)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(secondary_analyses)[<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="st">"Age"</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(secondary_analyses)[<span class="dv">14</span>] <span class="ot">&lt;-</span> <span class="st">"DefaultA"</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(secondary_analyses, <span class="fu">aes</span>(<span class="at">x =</span> Age, <span class="at">y =</span> DefaultA)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_smooth</span>(<span class="at">method =</span> lm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="page1_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

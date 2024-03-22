@@ -1,8 +1,4 @@
-# covSTATIS_netneuro
+# Reproducible example for the paper "covSTATIS: a multi-table technique for network neuroscience"
 
-This serves as the main repository for our manuscript "covSTATIS: a multi-table technique for network neuroscience". 
-In this repo, you'll find data (/Data) and code (/Code) we used to create our covSTATIS tutorial. All info on how to run the tutorial yourself is in the .Rmd file :)
-This repo also includes our Figures/Tables.
+This repository contains reproducible code. Go to the https://vguillemot.github.io/covSTATIS_netneuro/ for more detailed information.
 
-Happy covSTATISing :)
-PS If you have any questions, don't hesitate to reach out!
