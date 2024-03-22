@@ -8,8 +8,6 @@ website:
   favicon: logo.png
   navbar:
     left:
-      - href: index.qmd
-        text: Home
       - href: pages/page1.qmd
         text: Reproducible example
       - href: pages/page2.qmd
