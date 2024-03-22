@@ -10,12 +10,12 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: pages/about.qmd
-        text: About
       - href: pages/page1.qmd
         text: Reproducible example
       - href: pages/page2.qmd
         text: Ongoing progress
+      - href: pages/about.qmd
+        text: About
 
 format:
   html:

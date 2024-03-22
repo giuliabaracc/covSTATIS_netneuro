@@ -2,8 +2,15 @@
 title: "About"
 ---
 
-About this site
+This is where we present who we are and what we are passionnate about. 
 
-```{r}
-1 + 1
-```
+
+# Giulia Baracci
+
+short text ?
+
+# Ju-Chi Yu
+
+short text ?
+
+

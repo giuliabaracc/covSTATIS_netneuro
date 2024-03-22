@@ -1,5 +1,5 @@
 ---
-title: "covSTATIS vignette"
+title: "Apply regular covSTATIS to resting state fMRI data"
 ---
 
 ```{r setup, include=FALSE}
