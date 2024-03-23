@@ -8,7 +8,7 @@ Here are some extension techniques that are under development:
   + [Code for the paper](https://github.com/juchiyu/sDiSTATISpaper)
   + [The SPAFAC Package](https://github.com/juchiyu/SPAFAC) - under testing for sparse covSTATIS
 
-+ [K+1 covSTATIS](https://github.com/jennyrieck/C-MARINeR) by Derek Beaton, Ph.D. & Jenny Reick, Ph.D.
++ [K+1 covSTATIS](https://github.com/jennyrieck/C-MARINeR) by Derek Beaton, Ph.D. & Jenny Rieck, Ph.D.
 
-+ [Discriminant and hierarchical DiSTATIS](https://github.com/michaelkriegsman/DiDiSTATIS) by Michale Kreigsman, Ph.D.
++ [Discriminant and hierarchical DiSTATIS](https://github.com/michaelkriegsman/DiDiSTATIS) by Michael Kreigsman, Ph.D.
 
