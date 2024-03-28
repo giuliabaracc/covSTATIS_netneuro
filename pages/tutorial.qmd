@@ -28,7 +28,7 @@ scatter.theme <- theme(axis.text = element_text(size = 8, color = "#42376B"),
 
 ## Setup
 
-All data used in this tutorial are stored at: https://github.com/giuliabaracc/covSTATIS_netneuro/tree/main/Data. The "Data" repo contains: 144x3 functional connectivity text files (n=144, 3=task conditions, 0-,1-,2-back), a "participants_ages.csv" file with participants info and an atlas labels file "Schaefer_100parcel_17network_labels.csv". 
+All data used in this tutorial are stored [here](https://github.com/giuliabaracc/covSTATIS_netneuro/tree/main/Data). The "Data" repo contains: 144x3 functional connectivity text files (n=144, 3=task conditions, 0-,1-,2-back), a "participants_ages.csv" file with participants info and an atlas labels file "Schaefer_100parcel_17network_labels.csv". 
 
 ## Data info
 
