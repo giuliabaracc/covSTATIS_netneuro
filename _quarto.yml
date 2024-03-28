@@ -4,13 +4,13 @@ project:
 
 website:
   title: "covSTATIS"
-  description: This is a companion website to the paper [DOI]
+  description: This is a companion website to (the paper)[https://doi.org/10.48550/arXiv.2403.14481]
   favicon: logo.png
   navbar:
     left:
-      - href: pages/page1.qmd
+      - href: pages/tutorial.qmd
         text: Reproducible example
-      - href: pages/page2.qmd
+      - href: pages/extensions.qmd
         text: Other extensions
       - href: pages/about.qmd
         text: About
