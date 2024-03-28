@@ -4,7 +4,7 @@ title: 'Reproducible example for the paper "covSTATIS: a multi-table technique f
 
 This website provides the tutorial with reproducible example for our manuscript "covSTATIS: a multi-table technique for network neuroscience". 
 
-In this repo, you'll find data (/Data) and code (/pages/tutorial.qmd) we used to create our covSTATIS tutorial. All info on how to run the tutorial yourself is in the .qmd file (or as .rmd file) :)
+In this repo, you'll find data ([`/Data`](https://github.com/giuliabaracc/covSTATIS_netneuro/tree/main/Data)) and code ([`/pages/tutorial.qmd`](https://github.com/giuliabaracc/covSTATIS_netneuro/tree/main/pages/tutorial.qmd)) we used to create our covSTATIS tutorial. All info on how to run the tutorial yourself is in the .qmd file (or as .rmd file) :)
 
 Happy covSTATISing :)
 PS If you have any questions, don't hesitate to reach out!

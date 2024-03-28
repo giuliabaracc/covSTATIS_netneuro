@@ -14,6 +14,9 @@ website:
         text: Other extensions
       - href: pages/about.qmd
         text: About
+      - icon: github
+        href: https://github.com/giuliabaracc/covSTATIS_netneuro
+        
 
 format:
   html:

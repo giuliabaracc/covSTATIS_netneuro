@@ -12,3 +12,5 @@ Here are some extension techniques that are under development:
 
 + [Discriminant and hierarchical DiSTATIS](https://github.com/michaelkriegsman/DiDiSTATIS) by Michael Kreigsman, Ph.D.
 
++ STATIS method for individualized parcels and network organizations by Ju-Chi Yu, Ph.D. & Micaela Chan, Ph.D.
+
