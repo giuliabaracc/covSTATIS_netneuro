@@ -154,6 +154,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#read-in-the-data" id="toc-read-in-the-data" class="nav-link" data-scroll-target="#read-in-the-data">Read in the data</a></li>
   <li><a href="#run-covstatis" id="toc-run-covstatis" class="nav-link" data-scroll-target="#run-covstatis">Run covSTATIS</a>
   <ul class="collapse">
+  <li><a href="#the-function" id="toc-the-function" class="nav-link" data-scroll-target="#the-function">The function</a></li>
   <li><a href="#step-1-rv-similarity-matrix" id="toc-step-1-rv-similarity-matrix" class="nav-link" data-scroll-target="#step-1-rv-similarity-matrix">Step 1: RV similarity matrix</a></li>
   <li><a href="#step-2-compromise-space" id="toc-step-2-compromise-space" class="nav-link" data-scroll-target="#step-2-compromise-space">Step 2: Compromise space</a></li>
   <li><a href="#step-3-global-factor-scores-from-compromise-space" id="toc-step-3-global-factor-scores-from-compromise-space" class="nav-link" data-scroll-target="#step-3-global-factor-scores-from-compromise-space">Step 3: global factor scores from compromise space</a></li>
@@ -220,10 +221,43 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="run-covstatis" class="level2">
 <h2 class="anchored" data-anchor-id="run-covstatis">Run covSTATIS</h2>
-<p>Now that we have created our 3D data array (X), we can run covSTATIS. Since we are dealing with correlation values, the Distance flag should be set to FALSE. The nfact2keep flag denotes the number of components we want to keep (the bigger the value, the slower the computations).</p>
-<div class="cell" data-hash="tutorial_cache/html/unnamed-chunk-2_2b2474c74e6297c02b54ee0538bf55e3">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>covstatis_res <span class="ot">&lt;-</span> <span class="fu">distatis</span>(X, <span class="at">Distance =</span> F,<span class="at">nfact2keep =</span> <span class="dv">10</span>,<span class="at">compact =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Now that we have created our 3D data array (X), we can run covSTATIS. We used the <code>distatis</code> function to do so. Since we are dealing with correlation values, the flag should be set to . The flag denotes the number of components we want to keep (the bigger the value, the slower the computations).</p>
+<section id="the-function" class="level3">
+<h3 class="anchored" data-anchor-id="the-function">The function</h3>
+<p>In <code>distatis</code>, there are a few other arguments that the users might want to decide based on their research question and data:</p>
+<section id="norm" class="level4">
+<h4 class="anchored" data-anchor-id="norm"><code>Norm</code></h4>
+<p><code>Norm</code> specifies how each individual data table is normalized before entering <code>distatis</code>. By default, it is set to <code>"MFA"</code>, short for Multiple Factor Analysis by Pag�s, J�r�me, which normalizes each matrix by its first singular value. This type of normalization ensures that the data tables with larger variance will not dominate the first component of covSTATIS; in other words, every data table contributes the same amount of variance to the analysis.</p>
+<p>Other options are <code>"None"</code> (no normalization step is taken), <code>"SUMPCA"</code> (each table is normalized by its total variance), and <code>"NUCLEAR"</code> (each table is normalized by its sum of singular values).</p>
+<blockquote class="blockquote">
+<p>Our advice: We recommended people to use at least MFA or SUMPCA.</p>
+</blockquote>
+</section>
+<section id="double-centering" class="level4">
+<h4 class="anchored" data-anchor-id="double-centering"><code>double-centering</code></h4>
+<p><code>double-centering</code> flags if the rows and columns of each matrix are double-centered <em>after</em> the normalizing step <em>before</em> entering <code>distatis</code>. By default, it is set to <code>"TRUE"</code>, where each each row/column will have a mean of 0. This step will put the average of all factor scores in the compromise at the origin. When set to <code>"FALSE"</code>, the raw data after normalization is used.</p>
+<blockquote class="blockquote">
+<p>Our advice: We suggest users take careful consideration regarding this argument as double-centering the matrix will change the 0s. Specifically, when both positive and negative correlation coefficients are analyzed, the 0s in the matrices, as well as the directions, are meaningful. In this case, double-centering will adjust the values, which might lead to direction change (i.e., weak negative direction might become weak positive, or the other way around); therefore, it will be changing the data pattern too much. When keeping both directions with non-centering matrices, the relationship between ROIs in the compromise space should be interpreted based on the cosine of the angle they form with the origin (0 in the compromise components space). On the other hand, when only the positive correlations are analyzed, the double-centering will not change the data pattern. In this case, the double-centering procedure can improve the visualization of the compromise space (as the origin is at the center of all the ROIs). Also, the relationships between these ROIs can be interpreted by their proximities.</p>
+</blockquote>
+</section>
+<section id="design" class="level4">
+<h4 class="anchored" data-anchor-id="design"><code>design</code></h4>
+<p><code>design</code> allows users to specify the group structure of the matrices and ensures equal contribution of all groups when generating the weights to build the compromise. (Default is <code>"NULL"</code>.)</p>
+<blockquote class="blockquote">
+<p>Our advice: This is useful for some users. For example, if the connectivity matrices of both a patient group and healthy controls are analyzed, specifying the <code>design</code> argument will avoid the analysis being dominated by the larger group (e.g., the healthy controls). Such effect in the results is more related to different levels of difficulty in data collection rather than a true characteristics that should be considered. Therefore, these two groups should be normalized to contribute equally.</p>
+</blockquote>
+<p>There multiple arguments in this function, and we encourage users to choose</p>
+<div class="cell" data-hash="tutorial_cache/html/unnamed-chunk-2_57de26617dbfe86c5a936e216c4dee7a">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>covstatis_res <span class="ot">&lt;-</span> <span class="fu">distatis</span>(X, </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">Norm =</span> <span class="st">"MFA"</span>, <span class="co"># default</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">Distance =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                          <span class="at">double_centering =</span> <span class="cn">TRUE</span>, <span class="co"># default</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                          <span class="at">nfact2keep =</span> <span class="dv">10</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                          <span class="at">design =</span> <span class="cn">NULL</span>, <span class="co"># default</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                          <span class="at">compact =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+</section>
 <section id="step-1-rv-similarity-matrix" class="level3">
 <h3 class="anchored" data-anchor-id="step-1-rv-similarity-matrix">Step 1: RV similarity matrix</h3>
 <p>The first operation covSTATIS computes is the generation of an RV similarity matrix. The RV matrix quantifies the pairwise similarity among all data tables (squared Pearson’s correlation), irrespective of their rotation or scaling. The RV matrix then undergoes eigenvalue decomposition (EVD). The resulting first component best represents the common pattern across all tables, and its first eigenvector quantifies how similar each table is to this common pattern.</p>

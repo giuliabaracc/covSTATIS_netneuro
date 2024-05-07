@@ -65,10 +65,44 @@ dimnames(X)[[3]]<-all_fns %>% gsub(pattern=".txt", replacement = "") %>%
 
 ## Run covSTATIS
 
-Now that we have created our 3D data array (X), we can run covSTATIS. Since we are dealing with correlation values, the Distance flag should be set to FALSE. The nfact2keep flag denotes the number of components we want to keep (the bigger the value, the slower the computations).
+Now that we have created our 3D data array (X), we can run covSTATIS. We used the `distatis` function to do so. Since we are dealing with correlation values, the \code{Distance} flag should be set to \code{FALSE}. The \code{nfact2keep} flag denotes the number of components we want to keep (the bigger the value, the slower the computations).
+
+### The function
+
+In `distatis`, there are a few other arguments that the users might want to decide based on their research question and data:
+
+#### `Norm`
+
+`Norm` specifies how each individual data table is normalized before entering `distatis`. By default, it is set to `"MFA"`, short for Multiple Factor Analysis by Pagès, Jérôme, which normalizes each matrix by its first singular value. This type of normalization ensures that the data tables with larger variance will not dominate the first component of covSTATIS; in other words, every data table contributes the same amount of variance to the analysis.
+
+Other options are `"None"` (no normalization step is taken), `"SUMPCA"` (each table is normalized by its total variance), and `"NUCLEAR"` (each table is normalized by its sum of singular values).
+
+> Our advice: We recommended people to use at least MFA or SUMPCA.
+
+#### `double-centering`
+
+`double-centering` flags if the rows and columns of each matrix are double-centered *after* the normalizing step *before* entering `distatis`. By default, it is set to `"TRUE"`, where each each row/column will have a mean of 0. This step will put the average of all factor scores in the compromise at the origin. When set to `"FALSE"`, the raw data after normalization is used.
+
+> Our advice: We suggest users take careful consideration regarding this argument as double-centering the matrix will change the 0s. \n\n
+Specifically, when both positive and negative correlation coefficients are analyzed, the 0s in the matrices, as well as the directions, are meaningful. In this case, double-centering will adjust the values, which might lead to direction change (i.e., weak negative direction might become weak positive, or the other way around); therefore, it will be changing the data pattern too much. When keeping both directions with non-centering matrices, the relationship between ROIs in the compromise space should be interpreted based on the cosine of the angle they form with the origin (0 in the compromise components space).\n\n
+On the other hand, when only the positive correlations are analyzed, the double-centering will not change the data pattern. In this case, the double-centering procedure can improve the visualization of the compromise space (as the origin is at the center of all the ROIs). Also, the relationships between these ROIs can be interpreted by their proximities.
+
+#### `design`
+
+`design` allows users to specify the group structure of the matrices and ensures equal contribution of all groups when generating the weights to build the compromise. (Default is `"NULL"`.)
+
+> Our advice: This is useful for some users. For example, if the connectivity matrices of both a patient group and healthy controls are analyzed, specifying the `design` argument will avoid the analysis being dominated by the larger group (e.g., the healthy controls). Such effect in the results is more related to different levels of difficulty in data collection rather than a true characteristics that should be considered. Therefore, these two groups should be normalized to contribute equally.
+
+There multiple arguments in this function, and we encourage users to choose
 
 ```{r}
-covstatis_res <- distatis(X, Distance = F,nfact2keep = 10,compact = F)
+covstatis_res <- distatis(X, 
+                          Norm = "MFA", # default
+                          Distance = FALSE,
+                          double_centering = TRUE, # default
+                          nfact2keep = 10,
+                          design = NULL, # default
+                          compact = FALSE)
 ```
 
 ### Step 1: RV similarity matrix 
