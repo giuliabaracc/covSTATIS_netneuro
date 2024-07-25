@@ -3,6 +3,7 @@ project:
   output-dir: docs
 
 website:
+  google-analytics: "G-9EKS08N0J9"
   title: "covSTATIS"
   description: This is a companion website to (the paper)[https://doi.org/10.48550/arXiv.2403.14481]
   favicon: logo.png
@@ -16,7 +17,7 @@ website:
         text: About
       - icon: github
         href: https://github.com/giuliabaracc/covSTATIS_netneuro
-        
+
 
 format:
   html:
