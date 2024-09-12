@@ -51,4 +51,4 @@ I am a post-doctoral research fellow at Centre for Addiction and Mental Health (
 
 ## Visits
 
-<iframe width="100%" height="225" src="https://lookerstudio.google.com/embed/reporting/1ec6b33e-a1bd-4f2c-896d-25f4cd05fbc4/page/dhjBE" frameborder="0" style="border:0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" frameborder="0" style="border:0" allowfullscreen></iframe>
+<iframe width="300" height="225" src="https://lookerstudio.google.com/embed/reporting/1ec6b33e-a1bd-4f2c-896d-25f4cd05fbc4/page/dhjBE" frameborder="0" style="border:0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" frameborder="0" style="border:0" allowfullscreen></iframe>
