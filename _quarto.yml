@@ -18,7 +18,6 @@ website:
       - icon: github
         href: https://github.com/giuliabaracc/covSTATIS_netneuro
 
-
 format:
   html:
     theme: cosmo
