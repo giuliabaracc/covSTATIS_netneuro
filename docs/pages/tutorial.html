@@ -111,6 +111,35 @@ gtag('js', new Date());
 gtag('config', 'G-9EKS08N0J9', { 'anonymize_ip': true});
 </script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -171,7 +200,7 @@ gtag('config', 'G-9EKS08N0J9', { 'anonymize_ip': true});
   <li><a href="#run-covstatis" id="toc-run-covstatis" class="nav-link" data-scroll-target="#run-covstatis">Run covSTATIS</a>
   <ul class="collapse">
   <li><a href="#the-function" id="toc-the-function" class="nav-link" data-scroll-target="#the-function">The function</a></li>
-  <li><a href="#step-1-rv-similarity-matrix" id="toc-step-1-rv-similarity-matrix" class="nav-link" data-scroll-target="#step-1-rv-similarity-matrix">Step 1: RV similarity matrix</a></li>
+  <li><a href="#step-1-r_v-similarity-matrix" id="toc-step-1-r_v-similarity-matrix" class="nav-link" data-scroll-target="#step-1-r_v-similarity-matrix">Step 1: <span class="math inline">\(R_V\)</span> similarity matrix</a></li>
   <li><a href="#step-2-compromise-space" id="toc-step-2-compromise-space" class="nav-link" data-scroll-target="#step-2-compromise-space">Step 2: Compromise space</a></li>
   <li><a href="#step-3-global-factor-scores-from-compromise-space" id="toc-step-3-global-factor-scores-from-compromise-space" class="nav-link" data-scroll-target="#step-3-global-factor-scores-from-compromise-space">Step 3: global factor scores from compromise space</a></li>
   <li><a href="#step-4-partial-factor-scores-from-compromise-space" id="toc-step-4-partial-factor-scores-from-compromise-space" class="nav-link" data-scroll-target="#step-4-partial-factor-scores-from-compromise-space">Step 4: partial factor scores from compromise space</a></li>
@@ -202,6 +231,28 @@ gtag('config', 'G-9EKS08N0J9', { 'anonymize_ip': true});
 </header>
 
 
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(osfr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(devtools)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#devtools::install_github("HerveAbdi/DistatisR")</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DistatisR)  <span class="co"># covSTATIS analysis</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(PTCA4CATA)  <span class="co"># factor map plotting</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ExPosition) <span class="co"># makeDataNominal()</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gplots)     <span class="co"># heatmap.2()</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sp)         <span class="co"># convex hulls </span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RColorBrewer)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#devtools::install_github("mychan24/superheat")</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(superheat)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="do">## Theme</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>scatter.theme <span class="ot">&lt;-</span> <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>, <span class="at">color =</span> <span class="st">"#42376B"</span>),</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">color =</span> <span class="st">"#42376B"</span>),</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">color =</span> <span class="st">"#42376B"</span>), <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 <section id="setup" class="level2">
 <h2 class="anchored" data-anchor-id="setup">Setup</h2>
 <p>All data used in this tutorial are stored <a href="https://github.com/giuliabaracc/covSTATIS_netneuro/tree/main/Data">here</a>. The “Data” repo contains: 144x3 functional connectivity text files (n=144, 3=task conditions, 0-,1-,2-back), a “participants_ages.csv” file with participants info and an atlas labels file “Schaefer_100parcel_17network_labels.csv”.</p>
@@ -214,31 +265,27 @@ gtag('config', 'G-9EKS08N0J9', { 'anonymize_ip': true});
 <h2 class="anchored" data-anchor-id="read-in-the-data">Read in the data</h2>
 <p>The first step is to read in our connectivity matrices to form a 3D array (= ‘X’ here below) for analysis with covSTATIS. In this tutorial, the 3D array dimensionality is 100 x 100 x 144 x 3 (ROI x ROI x N x Task condition).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>atlas_prefix <span class="ot">&lt;-</span> <span class="st">"Schaefer100_17"</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>atlas_labels <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"../Data/Schaefer_100parcel_17network_labels.csv"</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>atlas_labels<span class="sc">$</span>Network <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(atlas_labels<span class="sc">$</span>Network)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>demog_in <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"../Data/participant_ages.csv"</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>ids <span class="ot">&lt;-</span> demog_in<span class="sc">$</span>subjectID</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Read in FC .txt files and reshape into 3D array with size n_roi x n_roi x</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="do">## n_sub*n_conditions (i.e. n_fns)</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>all_fns <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path =</span> <span class="st">"../Data"</span>, <span class="at">pattern =</span> <span class="fu">paste0</span>(<span class="st">"^"</span>, atlas_prefix, <span class="st">".*txt"</span>),</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>X_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="at">X =</span> all_fns, <span class="at">FUN =</span> read_delim, <span class="at">delim =</span> <span class="st">"</span><span class="sc">\t</span><span class="st">"</span>, <span class="at">col_names =</span> F, <span class="at">col_type =</span> <span class="fu">list</span>(<span class="at">.default =</span> <span class="fu">col_double</span>()))</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="fu">unlist</span>(X_list), <span class="fu">c</span>(<span class="fu">dim</span>(X_list[[<span class="dv">1</span>]]), <span class="fu">length</span>(X_list)))  <span class="co">#our 3D array</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(X_list)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="do">## Label rows and columns with ROI label</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(<span class="fu">grep</span>(<span class="st">"Schaefer"</span>, atlas_prefix) <span class="sc">&gt;</span> <span class="dv">0</span>)) {</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rownames</span>(X) <span class="ot">&lt;-</span> atlas_labels<span class="sc">$</span>ROI_label</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">colnames</span>(X) <span class="ot">&lt;-</span> atlas_labels<span class="sc">$</span>ROI_label</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="do">## Label 3rd dimension with subject and task information (modified from</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="do">## filenames)</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]] <span class="ot">&lt;-</span> all_fns <span class="sc">%&gt;%</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gsub</span>(<span class="at">pattern =</span> <span class="st">".txt"</span>, <span class="at">replacement =</span> <span class="st">""</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gsub</span>(<span class="at">pattern =</span> <span class="fu">paste0</span>(atlas_prefix, <span class="st">"_"</span>), <span class="at">replacement =</span> <span class="st">""</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>atlas_prefix <span class="ot">&lt;-</span> <span class="st">"Schaefer100_17"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>atlas_labels <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">'../Data/Schaefer_100parcel_17network_labels.csv'</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>atlas_labels<span class="sc">$</span>Network <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(atlas_labels<span class="sc">$</span>Network)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>demog_in <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">'../Data/participant_ages.csv'</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>ids <span class="ot">&lt;-</span> demog_in<span class="sc">$</span>subjectID</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Read in FC .txt files and reshape into 3D array with size n_roi x n_roi x n_sub*n_conditions (i.e. n_fns)</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>all_fns<span class="ot">&lt;-</span><span class="fu">list.files</span>(<span class="at">path =</span> <span class="st">'../Data'</span>, <span class="at">pattern =</span> <span class="fu">paste0</span>(<span class="st">'^'</span>, atlas_prefix, <span class="st">'.*txt'</span>), <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>X_list<span class="ot">&lt;-</span><span class="fu">lapply</span>(<span class="at">X=</span>all_fns, <span class="at">FUN=</span>read_delim, <span class="at">delim=</span><span class="st">"</span><span class="sc">\t</span><span class="st">"</span>, <span class="at">col_names =</span> F,<span class="at">col_type =</span> <span class="fu">list</span>(<span class="at">.default =</span> <span class="fu">col_double</span>()))</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="fu">unlist</span>(X_list), <span class="fu">c</span>(<span class="fu">dim</span>(X_list[[<span class="dv">1</span>]]), <span class="fu">length</span>(X_list))) <span class="co">#our 3D array</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(X_list) </span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="do">## Label rows and columns with ROI label</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">length</span>(<span class="fu">grep</span>(<span class="st">"Schaefer"</span>, atlas_prefix)<span class="sc">&gt;</span><span class="dv">0</span>)){</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames</span>(X)<span class="ot">&lt;-</span> atlas_labels<span class="sc">$</span>ROI_label</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(X)<span class="ot">&lt;-</span> atlas_labels<span class="sc">$</span>ROI_label</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="do">## Label 3rd dimension with subject and task information (modified from filenames)</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]]<span class="ot">&lt;-</span>all_fns <span class="sc">%&gt;%</span> <span class="fu">gsub</span>(<span class="at">pattern=</span><span class="st">".txt"</span>, <span class="at">replacement =</span> <span class="st">""</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gsub</span>(<span class="at">pattern=</span><span class="fu">paste0</span>(atlas_prefix,<span class="st">"_"</span>), <span class="at">replacement =</span> <span class="st">""</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="run-covstatis" class="level2">
@@ -270,43 +317,51 @@ gtag('config', 'G-9EKS08N0J9', { 'anonymize_ip': true});
 </blockquote>
 <p>There multiple arguments in this function, and we encourage users to choose</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>covstatis_res <span class="ot">&lt;-</span> <span class="fu">distatis</span>(X, </span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">Norm =</span> <span class="st">"MFA"</span>, <span class="co"># default</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">Distance =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                          <span class="at">double_centering =</span> <span class="cn">TRUE</span>, <span class="co"># default</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                          <span class="at">nfact2keep =</span> <span class="dv">10</span>,</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                          <span class="at">design =</span> <span class="cn">NULL</span>, <span class="co"># default</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                          <span class="at">compact =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>covstatis_res <span class="ot">&lt;-</span> <span class="fu">distatis</span>(X, </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">Norm =</span> <span class="st">"MFA"</span>, <span class="co"># default</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">Distance =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                          <span class="at">double_centering =</span> <span class="cn">TRUE</span>, <span class="co"># default</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                          <span class="at">nfact2keep =</span> <span class="dv">10</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                          <span class="at">design =</span> <span class="cn">NULL</span>, <span class="co"># default</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                          <span class="at">compact =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
-<section id="step-1-rv-similarity-matrix" class="level3">
-<h3 class="anchored" data-anchor-id="step-1-rv-similarity-matrix">Step 1: RV similarity matrix</h3>
-<p>The first operation covSTATIS computes is the generation of an RV similarity matrix. The RV matrix quantifies the pairwise similarity among all data tables (squared Pearson’s correlation), irrespective of their rotation or scaling. The RV matrix then undergoes eigenvalue decomposition (EVD). The resulting first component best represents the common pattern across all tables, and its first eigenvector quantifies how similar each table is to this common pattern.</p>
-<p>Let’s visualize the results of this EVD on the RV matrix. The Scree plot shows how much variance is explained by each component/dimension. Ideally, there will be one strong component (as is the case with these data) indicating a strong coherence in the general network organization across all observations.</p>
+<section id="step-1-r_v-similarity-matrix" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-r_v-similarity-matrix">Step 1: <span class="math inline">\(R_V\)</span> similarity matrix</h3>
+<p>The first operation covSTATIS computes is the generation of an <span class="math inline">\(R_V\)</span> similarity matrix. The RV matrix quantifies the pairwise similarity among all data tables (squared Pearson’s correlation), irrespective of their rotation or scaling. The RV matrix then undergoes eigenvalue decomposition (EVD). The resulting first component best represents the common pattern across all tables, and its first eigenvector quantifies how similar each table is to this common pattern.</p>
+<p>Let’s visualize the results of this EVD on the <span class="math inline">\(R_V\)</span> matrix. The Scree plot shows how much variance is explained by each component/dimension. Ideally, there will be one strong component (as is the case with these data) indicating a strong coherence in the general network organization across all observations.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">PlotScree</span>(<span class="at">ev =</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>eigValues, <span class="at">title =</span> <span class="st">"RV-map: Explained Variance per Dimension"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="tutorial_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>The factor map of the RV space shows how similar the data tables are to each other.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>rv.labels <span class="ot">&lt;-</span> <span class="fu">createxyLabels.gen</span>(<span class="at">x_axis =</span> <span class="dv">1</span>, <span class="at">y_axis =</span> <span class="dv">2</span>, <span class="at">lambda =</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>eigValues,</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">tau =</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>tau)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="do">## factor map</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>rv.map <span class="ot">&lt;-</span> <span class="fu">createFactorMap</span>(covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>G, <span class="at">title =</span> <span class="st">"The component space of the RV matrix"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">col.background =</span> <span class="cn">NULL</span>, <span class="at">col.axes =</span> <span class="st">"#42376B"</span>, <span class="at">width.axes =</span> <span class="dv">1</span>, <span class="at">alpha.axes =</span> <span class="fl">0.5</span>)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>rv.map<span class="sc">$</span>zeMap_background <span class="sc">+</span> rv.map<span class="sc">$</span>zeMap_dots <span class="sc">+</span> rv.labels <span class="sc">+</span> scatter.theme</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">PlotScree</span>(<span class="at">ev =</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>eigValues, </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"RV-map: Explained Variance per Dimension"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="tutorial_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The factor map of the <span class="math inline">\(R_V\)</span> space shows how similar the data tables are to each other.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>rv.labels <span class="ot">&lt;-</span> <span class="fu">createxyLabels.gen</span>(<span class="at">x_axis =</span> <span class="dv">1</span>,</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                                <span class="at">y_axis =</span> <span class="dv">2</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>                                <span class="at">lambda =</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>eigValues,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                                <span class="at">tau =</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>tau,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                                <span class="at">axisName =</span> <span class="st">"Component "</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="do">## factor map</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>rv.map <span class="ot">&lt;-</span> <span class="fu">createFactorMap</span>(covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>G,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                          <span class="at">title =</span> <span class="st">"The component space of the RV matrix"</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                          <span class="at">col.background =</span> <span class="cn">NULL</span>, </span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                          <span class="at">col.axes =</span> <span class="st">"#42376B"</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                          <span class="at">width.axes =</span> <span class="dv">1</span>, </span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>                          <span class="at">alpha.axes =</span> <span class="fl">0.5</span>)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>rv.map<span class="sc">$</span>zeMap_background <span class="sc">+</span> rv.map<span class="sc">$</span>zeMap_dots <span class="sc">+</span> rv.labels <span class="sc">+</span> scatter.theme</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="tutorial_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -316,32 +371,32 @@ gtag('config', 'G-9EKS08N0J9', { 'anonymize_ip': true});
 <h3 class="anchored" data-anchor-id="step-2-compromise-space">Step 2: Compromise space</h3>
 <p>Next, covSTATIS grabs the first eigenvector of this EVD on RV and scales it to sum to 1. The compromise matrix is built from the weighted sum of all data matrices and then also submitted to EVD. Let’s first visualize the compromise space/matrix.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>net.col <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">unique</span>(atlas_labels[,<span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">4</span>)]))</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(net.col) <span class="ot">&lt;-</span> net.col<span class="sc">$</span>Network</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>col.pal <span class="ot">&lt;-</span> <span class="fu">brewer.pal</span>(<span class="dv">11</span>, <span class="st">"RdBu"</span>)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">superheat</span>(covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>Splus,</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">membership.cols =</span> atlas_labels<span class="sc">$</span>Network,</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">membership.rows =</span> atlas_labels<span class="sc">$</span>Network,</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">clustering.method =</span> <span class="cn">NULL</span>,</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.lim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.1</span>,<span class="fl">0.1</span>),</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.pal =</span> <span class="fu">rev</span>(<span class="fu">brewer.pal</span>(<span class="dv">11</span>, <span class="st">"RdBu"</span>)),</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.pal.values =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.45</span>,<span class="fl">0.5</span>,<span class="fl">0.55</span>,<span class="dv">1</span>),</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.size =</span> <span class="fl">0.08</span>,</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.size =</span> <span class="fl">0.05</span>,</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">y.axis.reverse =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.col =</span> net.col[<span class="fu">levels</span>(atlas_labels<span class="sc">$</span>Network),<span class="st">"Network_color"</span>], <span class="co"># order by community name</span></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.col =</span>  net.col[<span class="fu">levels</span>(atlas_labels<span class="sc">$</span>Network), <span class="st">"Network_color"</span>],</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.size =</span> <span class="dv">3</span>,</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.text.size =</span> <span class="dv">2</span>,</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.col =</span> <span class="st">"black"</span>,</span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.text.col =</span> <span class="st">"black"</span>,</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.alignment =</span> <span class="st">"left"</span>,</span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"The compromise"</span>)<span class="sc">$</span>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>net.col <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">unique</span>(atlas_labels[,<span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">4</span>)]))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(net.col) <span class="ot">&lt;-</span> net.col<span class="sc">$</span>Network</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>col.pal <span class="ot">&lt;-</span> <span class="fu">brewer.pal</span>(<span class="dv">11</span>, <span class="st">"RdBu"</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">superheat</span>(covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>Splus,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">membership.cols =</span> atlas_labels<span class="sc">$</span>Network,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">membership.rows =</span> atlas_labels<span class="sc">$</span>Network,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">clustering.method =</span> <span class="cn">NULL</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.lim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.1</span>,<span class="fl">0.1</span>),</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.pal =</span> <span class="fu">rev</span>(<span class="fu">brewer.pal</span>(<span class="dv">11</span>, <span class="st">"RdBu"</span>)),</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.pal.values =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.45</span>,<span class="fl">0.5</span>,<span class="fl">0.55</span>,<span class="dv">1</span>),</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.size =</span> <span class="fl">0.08</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.size =</span> <span class="fl">0.05</span>,</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">y.axis.reverse =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.col =</span> net.col[<span class="fu">levels</span>(atlas_labels<span class="sc">$</span>Network),<span class="st">"Network_color"</span>], <span class="co"># order by community name</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.col =</span>  net.col[<span class="fu">levels</span>(atlas_labels<span class="sc">$</span>Network), <span class="st">"Network_color"</span>],</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.size =</span> <span class="dv">3</span>,</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.text.size =</span> <span class="dv">2</span>,</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.col =</span> <span class="st">"black"</span>,</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.text.col =</span> <span class="st">"black"</span>,</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.alignment =</span> <span class="st">"left"</span>,</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"The compromise"</span>)<span class="sc">$</span>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tutorial_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="960"></p>
+<p><img src="tutorial_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>
@@ -357,41 +412,42 @@ gtag('config', 'G-9EKS08N0J9', { 'anonymize_ip': true});
 </div>
 <p>Next, the compromise undergoes EVD. Let’s visualize its scree plot:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">PlotScree</span>(<span class="at">ev =</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>eigValues, <span class="at">title =</span> <span class="st">"Compromise: Explained Variance per Dimension"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">PlotScree</span>(<span class="at">ev =</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>eigValues,</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Compromise: Explained Variance per Dimension"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tutorial_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="tutorial_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>Let’s now reconstruct a heatmap to explore the dimensions from the EVD on the compromise. Let’s start by visualizing the first two components (LV1, LV2).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>covstatis_corrmat_lv1_lv2 <span class="ot">&lt;-</span> <span class="fu">tcrossprod</span>(covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F[,<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>)])</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">superheat</span>(covstatis_corrmat_lv1_lv2,</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">membership.cols =</span> atlas_labels<span class="sc">$</span>Network,</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">membership.rows =</span> atlas_labels<span class="sc">$</span>Network,</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">clustering.method =</span> <span class="cn">NULL</span>,</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.lim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.1</span>,<span class="fl">0.1</span>),</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.pal =</span> <span class="fu">rev</span>(<span class="fu">brewer.pal</span>(<span class="dv">11</span>, <span class="st">"RdBu"</span>)),</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.pal.values =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.45</span>,<span class="fl">0.5</span>,<span class="fl">0.55</span>,<span class="dv">1</span>),</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.size =</span> <span class="fl">0.08</span>,</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.size =</span> <span class="fl">0.05</span>,</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">y.axis.reverse =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.col =</span> net.col[<span class="fu">levels</span>(atlas_labels<span class="sc">$</span>Network),<span class="st">"Network_color"</span>], <span class="co"># order by community name</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.col =</span>  net.col[<span class="fu">levels</span>(atlas_labels<span class="sc">$</span>Network), <span class="st">"Network_color"</span>],</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.size =</span> <span class="dv">3</span>,</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.text.size =</span> <span class="dv">2</span>,</span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.col =</span> <span class="st">"black"</span>,</span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.text.col =</span> <span class="st">"black"</span>,</span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.alignment =</span> <span class="st">"left"</span>,</span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Rebuilt Heatmap for LV1 and LV2"</span>)<span class="sc">$</span>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>covstatis_corrmat_lv1_lv2 <span class="ot">&lt;-</span> <span class="fu">tcrossprod</span>(covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F[,<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>)])</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">superheat</span>(covstatis_corrmat_lv1_lv2,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">membership.cols =</span> atlas_labels<span class="sc">$</span>Network,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">membership.rows =</span> atlas_labels<span class="sc">$</span>Network,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">clustering.method =</span> <span class="cn">NULL</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.lim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.1</span>,<span class="fl">0.1</span>),</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.pal =</span> <span class="fu">rev</span>(<span class="fu">brewer.pal</span>(<span class="dv">11</span>, <span class="st">"RdBu"</span>)),</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">heat.pal.values =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.45</span>,<span class="fl">0.5</span>,<span class="fl">0.55</span>,<span class="dv">1</span>),</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.size =</span> <span class="fl">0.08</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.size =</span> <span class="fl">0.05</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">y.axis.reverse =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.col =</span> net.col[<span class="fu">levels</span>(atlas_labels<span class="sc">$</span>Network),<span class="st">"Network_color"</span>], <span class="co"># order by community name</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.col =</span>  net.col[<span class="fu">levels</span>(atlas_labels<span class="sc">$</span>Network), <span class="st">"Network_color"</span>],</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.size =</span> <span class="dv">3</span>,</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.text.size =</span> <span class="dv">2</span>,</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.col =</span> <span class="st">"black"</span>,</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>          <span class="at">bottom.label.text.col =</span> <span class="st">"black"</span>,</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>          <span class="at">left.label.text.alignment =</span> <span class="st">"left"</span>,</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Rebuilt Heatmap for LV1 and LV2"</span>)<span class="sc">$</span>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tutorial_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="960"></p>
+<p><img src="tutorial_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>
@@ -410,39 +466,27 @@ gtag('config', 'G-9EKS08N0J9', { 'anonymize_ip': true});
 <h3 class="anchored" data-anchor-id="step-3-global-factor-scores-from-compromise-space">Step 3: global factor scores from compromise space</h3>
 <p>The compromise space shows us how regional connectivity values relate to each other across all data tables (individuals and conditions). Each point in the compromise space represents a global factor score: a different ROI from our functional connectivity matrices, colored by their network membership. The closer points are, the stronger the functional connectivity across the entire dataset.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>network_labels <span class="ot">&lt;-</span> <span class="fu">unique</span>(atlas_labels<span class="sc">$</span>Network)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>network_colors <span class="ot">&lt;-</span> <span class="fu">unique</span>(atlas_labels<span class="sc">$</span>Network_color)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># To get graphs with axes 1 and 2:</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>h_axis <span class="ot">&lt;-</span> <span class="dv">1</span>  <span class="co"># component to plot on x-axis</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>v_axis <span class="ot">&lt;-</span> <span class="dv">2</span>  <span class="co"># component to plot on y-axis</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>compromise_graph_out <span class="ot">&lt;-</span> <span class="fu">createFactorMap</span>(covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F, <span class="at">axis1 =</span> h_axis,</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis2 =</span> v_axis, <span class="at">title =</span> <span class="st">"Compromise ROI Space"</span>, <span class="at">col.points =</span> atlas_labels<span class="sc">$</span>Network_color,</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha.points =</span> <span class="fl">0.6</span>, <span class="at">cex =</span> <span class="dv">3</span>, <span class="at">col.background =</span> <span class="cn">NULL</span>, <span class="at">col.axes =</span> <span class="st">"#42376B"</span>, <span class="at">width.axes =</span> <span class="dv">1</span>,</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha.axes =</span> <span class="fl">0.5</span>)</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span> scatter.theme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="tutorial_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>We can also compute the average of all the ROIs (i.e., barycenter) for each <em>a priori</em> network to get a coarser network compromise map.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>network_mean_F <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)), <span class="dv">2</span>, <span class="cf">function</span>(x) {</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    x<span class="sc">/</span><span class="fu">sum</span>(x)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>})) <span class="sc">%*%</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">row.names</span>(network_mean_F) <span class="ot">&lt;-</span> network_labels</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>compromise_network_graph_out <span class="ot">&lt;-</span> <span class="fu">createFactorMap</span>(network_mean_F, <span class="at">axis1 =</span> h_axis, <span class="at">axis2 =</span> v_axis,</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Compromise map for network-level barycenters"</span>, <span class="at">col.points =</span> network_colors,</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">col.labels =</span> network_colors, <span class="at">alpha.points =</span> <span class="fl">0.8</span>, <span class="at">cex =</span> <span class="dv">5</span>, <span class="at">text.cex =</span> <span class="dv">4</span>, <span class="at">alpha.labels =</span> <span class="fl">0.8</span>,</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">pch =</span> <span class="dv">18</span>, <span class="at">col.background =</span> <span class="cn">NULL</span>, <span class="at">col.axes =</span> <span class="st">"#42376B"</span>, <span class="at">width.axes =</span> <span class="dv">1</span>, <span class="at">alpha.axes =</span> <span class="fl">0.5</span>)</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_network_graph_out<span class="sc">$</span>zeMap <span class="sc">+</span> compromise_network_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    scatter.theme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>network_labels <span class="ot">&lt;-</span> <span class="fu">unique</span>(atlas_labels<span class="sc">$</span>Network)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>network_colors <span class="ot">&lt;-</span> <span class="fu">unique</span>(atlas_labels<span class="sc">$</span>Network_color)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Get labels for the compromise factor map</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>compromise_label <span class="ot">&lt;-</span> <span class="fu">createxyLabels.gen</span>(<span class="at">x_axis =</span> <span class="dv">1</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                                <span class="at">y_axis =</span> <span class="dv">2</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                                <span class="at">lambda =</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>eigValues,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                                <span class="at">tau =</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>tau,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>                                <span class="at">axisName =</span> <span class="st">"Component "</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co"># To get graphs with axes 1 and 2:</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>h_axis <span class="ot">&lt;-</span><span class="dv">1</span> <span class="co"># component to plot on x-axis</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>v_axis <span class="ot">&lt;-</span><span class="dv">2</span> <span class="co"># component to plot on y-axis</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>compromise_graph_out <span class="ot">&lt;-</span> <span class="fu">createFactorMap</span>(covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F,</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">axis1 =</span> h_axis, <span class="at">axis2 =</span> v_axis,</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">title =</span> <span class="st">'Compromise ROI Space'</span>,</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">col.points =</span> atlas_labels<span class="sc">$</span>Network_color,</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">alpha.points=</span>.<span class="dv">6</span>, <span class="at">cex=</span><span class="dv">3</span>,</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">col.background =</span> <span class="cn">NULL</span>, <span class="at">col.axes =</span> <span class="st">"#42376B"</span>,<span class="at">width.axes =</span> <span class="dv">1</span>, <span class="at">alpha.axes =</span> <span class="fl">0.5</span>) </span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span> scatter.theme <span class="sc">+</span> compromise_label)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -451,14 +495,34 @@ gtag('config', 'G-9EKS08N0J9', { 'anonymize_ip': true});
 </div>
 </div>
 </div>
-<p>Both the ROI-level and network-level factor maps can be overlaid to show how individuals ROIs cluster around their respective networks, for the whole sample.</p>
+<p>We can also compute the average of all the ROIs (i.e., barycenter) for each <em>a priori</em> network to get a coarser network compromise map.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span> compromise_network_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    compromise_network_graph_out<span class="sc">$</span>zeMap_text <span class="sc">+</span> scatter.theme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>network_mean_F <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)),<span class="dv">2</span>,<span class="cf">function</span>(x){x<span class="sc">/</span><span class="fu">sum</span>(x)})) <span class="sc">%*%</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">row.names</span>(network_mean_F) <span class="ot">&lt;-</span> network_labels</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>compromise_network_graph_out <span class="ot">&lt;-</span> <span class="fu">createFactorMap</span>(network_mean_F,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">axis1 =</span> h_axis,<span class="at">axis2 =</span> v_axis, </span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">title =</span> <span class="st">"Compromise map for network-level barycenters"</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">col.points =</span> network_colors, <span class="at">col.labels =</span> network_colors,</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">alpha.points=</span>.<span class="dv">8</span>, <span class="at">cex=</span><span class="dv">5</span>, <span class="at">text.cex=</span><span class="dv">4</span>, <span class="at">alpha.labels=</span>.<span class="dv">8</span>, <span class="at">pch=</span><span class="dv">18</span>,</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">col.background =</span> <span class="cn">NULL</span>, <span class="at">col.axes =</span> <span class="st">"#42376B"</span>,<span class="at">width.axes =</span> <span class="dv">1</span>, <span class="at">alpha.axes =</span> <span class="fl">0.5</span>)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_network_graph_out<span class="sc">$</span>zeMap <span class="sc">+</span> compromise_network_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span> scatter.theme <span class="sc">+</span> compromise_label)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="tutorial_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Both the ROI-level and network-level factor maps can be overlaid to show how individuals ROIs cluster around their respective networks, for the whole sample.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span> </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>        compromise_network_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span> compromise_network_graph_out<span class="sc">$</span>zeMap_text <span class="sc">+</span> scatter.theme <span class="sc">+</span> compromise_label)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="tutorial_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -469,76 +533,76 @@ gtag('config', 'G-9EKS08N0J9', { 'anonymize_ip': true});
 <p>Using partial projection, we can now project each condition back onto the compromise space (i.e., partial factor scores) to understand how each correlation matrix fits in the compromise (or sample-level) space.</p>
 <p>To do that, we should first create a design matrix specifying which slice in our X cube corresponds to which n-back condition:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>condition_design <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"character"</span>, <span class="fu">dim</span>(X)[<span class="dv">3</span>])</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>condition_design[<span class="fu">grep</span>(<span class="st">"*_nbk_0b"</span>, <span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]])] <span class="ot">&lt;-</span> <span class="st">"0b"</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>condition_design[<span class="fu">grep</span>(<span class="st">"*_nbk_1b"</span>, <span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]])] <span class="ot">&lt;-</span> <span class="st">"1b"</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>condition_design[<span class="fu">grep</span>(<span class="st">"*_nbk_2b"</span>, <span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]])] <span class="ot">&lt;-</span> <span class="st">"2b"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>condition_design <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"character"</span>,<span class="fu">dim</span>(X)[<span class="dv">3</span>])</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>condition_design[<span class="fu">grep</span>(<span class="st">"*_nbk_0b"</span>,<span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]])]<span class="ot">&lt;-</span><span class="st">"0b"</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>condition_design[<span class="fu">grep</span>(<span class="st">"*_nbk_1b"</span>,<span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]])]<span class="ot">&lt;-</span><span class="st">"1b"</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>condition_design[<span class="fu">grep</span>(<span class="st">"*_nbk_2b"</span>,<span class="fu">dimnames</span>(X)[[<span class="dv">3</span>]])]<span class="ot">&lt;-</span><span class="st">"2b"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Now we can compute and plot the partial maps for the different n-back conditions, for each ROI. This plot shows how much the connectivity for each ROI is similar/different across task conditions (closer to the ROI center: more similar; farther from ROI center: more different).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Compute the Partial map</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>F_j     <span class="ot">&lt;-</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>PartialF</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>alpha_j <span class="ot">&lt;-</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>alpha</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create the groups based on design</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>code4Groups <span class="ot">&lt;-</span> <span class="fu">unique</span>(condition_design)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>nK <span class="ot">&lt;-</span> <span class="fu">length</span>(code4Groups)</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># initialize F_K and alpha_k</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>F_k <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim =</span> <span class="fu">c</span>(<span class="fu">dim</span>(F_j)[[<span class="dv">1</span>]], <span class="fu">dim</span>(F_j)[[<span class="dv">2</span>]],nK))</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="fu">dimnames</span>(F_k) <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">dimnames</span>(F_j)[[<span class="dv">1</span>]], </span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">dimnames</span>(F_j)[[<span class="dv">2</span>]], code4Groups)</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>alpha_k <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, nK)</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(alpha_k) <span class="ot">&lt;-</span> code4Groups</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>Fa_j <span class="ot">&lt;-</span> F_j</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">dim</span>(F_j)[[<span class="dv">3</span>]]){ Fa_j[,,j]  <span class="ot">&lt;-</span> F_j[,,j] <span class="sc">*</span> alpha_j[j] }</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nK){</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  lindex <span class="ot">&lt;-</span> condition_design <span class="sc">==</span> code4Groups[k]</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  alpha_k[k] <span class="ot">&lt;-</span> <span class="fu">sum</span>(alpha_j[lindex])</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  F_k[,,k] <span class="ot">&lt;-</span> (<span class="dv">1</span><span class="sc">/</span>alpha_k[k])<span class="sc">*</span><span class="fu">apply</span>(Fa_j[,,lindex],<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),sum)</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>compromise_pfs <span class="ot">&lt;-</span> <span class="fu">createPartialFactorScoresMap</span>(</span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">factorScores =</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F,      </span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">partialFactorScores =</span> F_k,  </span>
-<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">axis1 =</span> <span class="dv">1</span>, <span class="at">axis2 =</span> <span class="dv">2</span>,</span>
-<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors4Items =</span> <span class="fu">as.vector</span>(atlas_labels<span class="sc">$</span>Network_color), </span>
-<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors4Blocks =</span> <span class="fu">c</span>(<span class="st">"yellowgreen"</span>, <span class="st">"olivedrab"</span>, <span class="st">"darkgreen"</span>),</span>
-<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">names4Partial =</span> <span class="fu">dimnames</span>(F_k)[[<span class="dv">3</span>]], <span class="co"># </span></span>
-<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">shape.points =</span> <span class="dv">20</span>)</span>
-<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span></span>
-<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>  compromise_pfs<span class="sc">$</span>mapColByBlocks <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">'Compromise map - Partial factor scores by task design'</span>) <span class="sc">+</span> scatter.theme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Compute the Partial map</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>F_j     <span class="ot">&lt;-</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>PartialF</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>alpha_j <span class="ot">&lt;-</span> covstatis_res<span class="sc">$</span>res4Cmat<span class="sc">$</span>alpha</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create the groups based on design</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>code4Groups <span class="ot">&lt;-</span> <span class="fu">unique</span>(condition_design)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>nK <span class="ot">&lt;-</span> <span class="fu">length</span>(code4Groups)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co"># initialize F_K and alpha_k</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>F_k <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim =</span> <span class="fu">c</span>(<span class="fu">dim</span>(F_j)[[<span class="dv">1</span>]], <span class="fu">dim</span>(F_j)[[<span class="dv">2</span>]],nK))</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">dimnames</span>(F_k) <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">dimnames</span>(F_j)[[<span class="dv">1</span>]], </span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">dimnames</span>(F_j)[[<span class="dv">2</span>]], code4Groups)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>alpha_k <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, nK)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(alpha_k) <span class="ot">&lt;-</span> code4Groups</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>Fa_j <span class="ot">&lt;-</span> F_j</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">dim</span>(F_j)[[<span class="dv">3</span>]]){ Fa_j[,,j]  <span class="ot">&lt;-</span> F_j[,,j] <span class="sc">*</span> alpha_j[j] }</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nK){</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>  lindex <span class="ot">&lt;-</span> condition_design <span class="sc">==</span> code4Groups[k]</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>  alpha_k[k] <span class="ot">&lt;-</span> <span class="fu">sum</span>(alpha_j[lindex])</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  F_k[,,k] <span class="ot">&lt;-</span> (<span class="dv">1</span><span class="sc">/</span>alpha_k[k])<span class="sc">*</span><span class="fu">apply</span>(Fa_j[,,lindex],<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),sum)</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>compromise_pfs <span class="ot">&lt;-</span> <span class="fu">createPartialFactorScoresMap</span>(</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">factorScores =</span> covstatis_res<span class="sc">$</span>res4Splus<span class="sc">$</span>F,      </span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">partialFactorScores =</span> F_k,  </span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">axis1 =</span> <span class="dv">1</span>, <span class="at">axis2 =</span> <span class="dv">2</span>,</span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors4Items =</span> <span class="fu">as.vector</span>(atlas_labels<span class="sc">$</span>Network_color), </span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors4Blocks =</span> <span class="fu">c</span>(<span class="st">"yellowgreen"</span>, <span class="st">"olivedrab"</span>, <span class="st">"darkgreen"</span>),</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">names4Partial =</span> <span class="fu">dimnames</span>(F_k)[[<span class="dv">3</span>]], <span class="co"># </span></span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">shape.points =</span> <span class="dv">20</span>)</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_graph_out<span class="sc">$</span>zeMap_background <span class="sc">+</span> compromise_graph_out<span class="sc">$</span>zeMap_dots <span class="sc">+</span></span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>  compromise_pfs<span class="sc">$</span>mapColByBlocks <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">'Compromise map - Partial factor scores by task design'</span>) <span class="sc">+</span> scatter.theme <span class="sc">+</span> compromise_label)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tutorial_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="tutorial_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>That’s a very busy plot! Let’s clean it up to make things easier to interpret. We can compute the partial factor scores by the mean network compromise. Similar to our ROI plot, for each network, the more spread out the conditions are from the network mean, the more diverse the functional connectivity is across task conditions. Tip: if you have groups, sometimes it is helpful to separate partial factor scores per group and plot them individually (e.g., you may not be able to see a difference if everything is plotted together).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>F_k_network<span class="ot">&lt;-</span><span class="fu">array</span>(<span class="cn">NA</span>, <span class="at">dim=</span><span class="fu">c</span>(<span class="fu">length</span>(network_labels), <span class="fu">dim</span>(F_k)[<span class="dv">2</span>], <span class="fu">dim</span>(F_k)[<span class="dv">3</span>]))</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dimnames</span>(F_k_network)<span class="ot">&lt;-</span><span class="fu">list</span>(network_labels, <span class="fu">dimnames</span>(F_k)[[<span class="dv">2</span>]], <span class="fu">dimnames</span>(F_k)[[<span class="dv">3</span>]])</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">dim</span>(F_k_network)[<span class="dv">3</span>]){</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  F_k_network[,,i]<span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)),<span class="dv">2</span>,<span class="cf">function</span>(x){x<span class="sc">/</span><span class="fu">sum</span>(x)})) <span class="sc">%*%</span> F_k[,,i]</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>compromise_pfs_network <span class="ot">&lt;-</span> <span class="fu">createPartialFactorScoresMap</span>(</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">factorScores =</span> network_mean_F,      </span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">partialFactorScores =</span> F_k_network,  </span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">axis1 =</span> <span class="dv">1</span>, <span class="at">axis2 =</span> <span class="dv">2</span>,</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors4Items =</span> network_colors, </span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors4Blocks =</span> <span class="fu">c</span>(<span class="st">"yellowgreen"</span>, <span class="st">"olivedrab"</span>, <span class="st">"darkgreen"</span>),</span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">names4Partial =</span> <span class="fu">dimnames</span>(F_k_network)[[<span class="dv">3</span>]], <span class="co"># </span></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">size.labels=</span><span class="fl">3.5</span>, <span class="at">size.points =</span> <span class="dv">2</span>,<span class="at">shape.points=</span><span class="dv">20</span>)</span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_network_graph_out<span class="sc">$</span>zeMap <span class="sc">+</span> compromise_pfs_network<span class="sc">$</span>mapColByBlocks <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">'Network level compromise map - Partial factor scores by task design'</span>) <span class="sc">+</span> scatter.theme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>F_k_network<span class="ot">&lt;-</span><span class="fu">array</span>(<span class="cn">NA</span>, <span class="at">dim=</span><span class="fu">c</span>(<span class="fu">length</span>(network_labels), <span class="fu">dim</span>(F_k)[<span class="dv">2</span>], <span class="fu">dim</span>(F_k)[<span class="dv">3</span>]))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dimnames</span>(F_k_network)<span class="ot">&lt;-</span><span class="fu">list</span>(network_labels, <span class="fu">dimnames</span>(F_k)[[<span class="dv">2</span>]], <span class="fu">dimnames</span>(F_k)[[<span class="dv">3</span>]])</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">dim</span>(F_k_network)[<span class="dv">3</span>]){</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  F_k_network[,,i]<span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)),<span class="dv">2</span>,<span class="cf">function</span>(x){x<span class="sc">/</span><span class="fu">sum</span>(x)})) <span class="sc">%*%</span> F_k[,,i]</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>compromise_pfs_network <span class="ot">&lt;-</span> <span class="fu">createPartialFactorScoresMap</span>(</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">factorScores =</span> network_mean_F,      </span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">partialFactorScores =</span> F_k_network,  </span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">axis1 =</span> <span class="dv">1</span>, <span class="at">axis2 =</span> <span class="dv">2</span>,</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors4Items =</span> network_colors, </span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors4Blocks =</span> <span class="fu">c</span>(<span class="st">"yellowgreen"</span>, <span class="st">"olivedrab"</span>, <span class="st">"darkgreen"</span>),</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">names4Partial =</span> <span class="fu">dimnames</span>(F_k_network)[[<span class="dv">3</span>]], <span class="co"># </span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">size.labels=</span><span class="fl">3.5</span>, <span class="at">size.points =</span> <span class="dv">2</span>,<span class="at">shape.points=</span><span class="dv">20</span>)</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(compromise_network_graph_out<span class="sc">$</span>zeMap <span class="sc">+</span> compromise_pfs_network<span class="sc">$</span>mapColByBlocks <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">'Network level compromise map - Partial factor scores by task design'</span>) <span class="sc">+</span> scatter.theme <span class="sc">+</span> compromise_label)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tutorial_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="tutorial_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -548,58 +612,52 @@ gtag('config', 'G-9EKS08N0J9', { 'anonymize_ip': true});
 <h3 class="anchored" data-anchor-id="step-5-area-of-the-convex-hull">Step 5: area of the convex hull</h3>
 <p>We can now compute the area of the convex hull around the partial factor scores for each individual at the network-level (NB: this can be done at the regional level too). Area of the hull scores can be seen as “task condition differentiation scores”: the larger the area of the hull, the more diverse the network functional connectivity is across task conditions (more distant from mean); the smaller the area of the hull, the more homogenous the functional connectivity across 0-,1-, and 2-back. Note: area of the hull values are arbitrary so you can go ahead and normalize them. Make sure you have at least 4 points to build the area of the hull (here you’ll see warnings cause some networks have less than 4 observations/ROIs).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Create empty matrix to put results in, should be # participants (rows) by #</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="do">## networks (columns)</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>task_diff_network_level <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">matrix</span>(<span class="dv">0</span>, <span class="fu">length</span>(ids), <span class="fu">length</span>(network_labels)))</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(task_diff_network_level) <span class="ot">&lt;-</span> ids</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(task_diff_network_level) <span class="ot">&lt;-</span> network_labels</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>partialF <span class="ot">&lt;-</span> covstatis_res<span class="sc">$</span>res4Splu<span class="sc">$</span>PartialF</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(ids)) {</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    <span class="do">### Grab all the partialF values associated with this subject for LV1</span></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    this_lv1 <span class="ot">&lt;-</span> partialF[, <span class="dv">1</span>, <span class="fu">grep</span>(<span class="fu">paste0</span>(ids[i], <span class="st">"_*"</span>), <span class="fu">dimnames</span>(partialF)[[<span class="dv">3</span>]])]</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="do">## Transform the node-level partialF to network-level partialF for LV1</span></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    this_lv1_network <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)),</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>        <span class="dv">2</span>, <span class="cf">function</span>(x) {</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>            x<span class="sc">/</span><span class="fu">sum</span>(x)</span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>        })) <span class="sc">%*%</span> <span class="fu">as.matrix</span>(this_lv1)</span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="do">### Grab all the partialF values associated with this P for LV2</span></span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    this_lv2 <span class="ot">&lt;-</span> partialF[, <span class="dv">2</span>, <span class="fu">grep</span>(<span class="fu">paste0</span>(ids[i], <span class="st">"_*"</span>), <span class="fu">dimnames</span>(partialF)[[<span class="dv">3</span>]])]</span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>    <span class="do">## Transform the node-level partialF to network-level partialF for LV2</span></span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>    this_lv2_network <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)),</span>
-<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>        <span class="dv">2</span>, <span class="cf">function</span>(x) {</span>
-<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>            x<span class="sc">/</span><span class="fu">sum</span>(x)</span>
-<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>        })) <span class="sc">%*%</span> <span class="fu">as.matrix</span>(this_lv2)</span>
-<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>    <span class="do">## Loop through each network, get the LV1 and LV2 points, and compute the</span></span>
-<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>    <span class="do">## area of the hull around the points</span></span>
-<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (n <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(network_labels)) {</span>
-<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>        hull_pts <span class="ot">&lt;-</span> <span class="fu">chull</span>(this_lv1_network[n, ], this_lv2_network[n, ])  <span class="co">#here you can play with the flag 'percentage' and include either all points (like done here) or e.g., 95% of them in which case you'd write 'percentage=0.95'</span></span>
-<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>        this_hull_coords <span class="ot">&lt;-</span> <span class="fu">cbind</span>(this_lv1_network[n, hull_pts], this_lv2_network[n,</span>
-<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>            hull_pts])</span>
-<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>        this_poly_area <span class="ot">&lt;-</span> <span class="fu">Polygon</span>(this_hull_coords, <span class="at">hole =</span> F)<span class="sc">@</span>area</span>
-<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>        task_diff_network_level[i, n] <span class="ot">&lt;-</span> this_poly_area</span>
-<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a><span class="co"># print(task_diff_network_level) #you can go ahead and save this output and</span></span>
-<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a><span class="co"># relate it to e.g., behavior</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Create empty matrix to put results in, should be # participants (rows) by # networks (columns)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>task_diff_network_level <span class="ot">&lt;-</span><span class="fu">data.frame</span>(<span class="fu">matrix</span>(<span class="dv">0</span>, <span class="fu">length</span>(ids),<span class="fu">length</span>(network_labels)))</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(task_diff_network_level) <span class="ot">&lt;-</span> ids</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(task_diff_network_level) <span class="ot">&lt;-</span> network_labels</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>partialF <span class="ot">&lt;-</span> covstatis_res<span class="sc">$</span>res4Splu<span class="sc">$</span>PartialF</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(ids)){</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="do">### Grab all the partialF values associated with this subject for LV1</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  this_lv1 <span class="ot">&lt;-</span> partialF[,<span class="dv">1</span>,<span class="fu">grep</span>(<span class="fu">paste0</span>(ids[i], <span class="st">"_*"</span>),<span class="fu">dimnames</span>(partialF)[[<span class="dv">3</span>]])]</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Transform the node-level partialF to network-level partialF for LV1</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  this_lv1_network<span class="ot">&lt;-</span><span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)),<span class="dv">2</span>,</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>                            <span class="cf">function</span>(x){x<span class="sc">/</span><span class="fu">sum</span>(x)})) <span class="sc">%*%</span> <span class="fu">as.matrix</span>(this_lv1)</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  <span class="do">### Grab all the partialF values associated with this P for LV2</span></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>  this_lv2 <span class="ot">&lt;-</span> partialF[,<span class="dv">2</span>,<span class="fu">grep</span>(<span class="fu">paste0</span>(ids[i], <span class="st">"_*"</span>),<span class="fu">dimnames</span>(partialF)[[<span class="dv">3</span>]])]</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Transform the node-level partialF to network-level partialF for LV2</span></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  this_lv2_network<span class="ot">&lt;-</span><span class="fu">t</span>(<span class="fu">apply</span>(<span class="fu">makeNominalData</span>(<span class="fu">as.matrix</span>(atlas_labels<span class="sc">$</span>Network)),<span class="dv">2</span>,</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>                            <span class="cf">function</span>(x){x<span class="sc">/</span><span class="fu">sum</span>(x)})) <span class="sc">%*%</span> <span class="fu">as.matrix</span>(this_lv2)</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Loop through each network, get the LV1 and LV2 points, and compute the area of the hull around the points</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(n <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(network_labels)){</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>    hull_pts <span class="ot">&lt;-</span> <span class="fu">chull</span>(this_lv1_network[n,], this_lv2_network[n,]) <span class="co">#here you can play with the flag "percentage" and include either all points (like done here) or e.g., 95% of them in which case you'd write "percentage=0.95"</span></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>    this_hull_coords <span class="ot">&lt;-</span> <span class="fu">cbind</span>(this_lv1_network[n,hull_pts],this_lv2_network[n,hull_pts] )</span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>    this_poly_area <span class="ot">&lt;-</span> <span class="fu">Polygon</span>(this_hull_coords, <span class="at">hole=</span>F)<span class="sc">@</span>area</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>    task_diff_network_level[i,n] <span class="ot">&lt;-</span> this_poly_area</span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>} </span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a><span class="co">#print(task_diff_network_level) #you can go ahead and save this output and relate it to e.g., behavior</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Area of the hull scores can be used in secondary analyses, such as brain-behavior correlation. Since our sample is an adult lifespan sample, we can relate area of the hull scores to age. This plot shows how Default A functional connectivity becomes more homogeneous/less differentiated across tasks as a function of age.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>secondary_analyses <span class="ot">&lt;-</span> <span class="fu">cbind</span>(demog_in<span class="sc">$</span>Age, task_diff_network_level)</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>secondary_analyses <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(secondary_analyses)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(secondary_analyses)[<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="st">"Age"</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(secondary_analyses)[<span class="dv">14</span>] <span class="ot">&lt;-</span> <span class="st">"DefaultA"</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(secondary_analyses, <span class="fu">aes</span>(<span class="at">x =</span> Age, <span class="at">y =</span> DefaultA)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_smooth</span>(<span class="at">method =</span> lm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>secondary_analyses <span class="ot">&lt;-</span> <span class="fu">cbind</span>(demog_in<span class="sc">$</span>Age, task_diff_network_level)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>secondary_analyses <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(secondary_analyses)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(secondary_analyses)[<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="st">"Age"</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(secondary_analyses)[<span class="dv">14</span>] <span class="ot">&lt;-</span> <span class="st">"DefaultA"</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(secondary_analyses, <span class="fu">aes</span>(<span class="at">x=</span>Age, <span class="at">y=</span>DefaultA)) <span class="sc">+</span> </span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()<span class="sc">+</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method=</span>lm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tutorial_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="tutorial_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>

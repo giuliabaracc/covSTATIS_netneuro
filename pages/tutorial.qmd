@@ -4,6 +4,10 @@ title: "Apply regular covSTATIS to task fMRI data"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(message=FALSE, warning=FALSE, tidy.opts=list(width.cutoff=80), tidy=TRUE, cache = TRUE)
+
+```
+
+```{r, echo=TRUE, results='hide', message = 'hide', warning = 'hide'}
 library(tidyr)
 library(dplyr)
 library(osfr)
@@ -105,28 +109,32 @@ covstatis_res <- distatis(X,
                           compact = FALSE)
 ```
 
-### Step 1: RV similarity matrix 
+### Step 1: $R_V$ similarity matrix 
 
-The first operation covSTATIS computes is the generation of an RV similarity matrix. The RV matrix quantifies the pairwise similarity among all data tables (squared Pearson's correlation), irrespective of their rotation or scaling. The RV matrix then undergoes eigenvalue decomposition (EVD). The resulting first component best represents the common pattern across all tables, and its first eigenvector quantifies how similar each table is to this common pattern. 
+The first operation covSTATIS computes is the generation of an $R_V$ similarity matrix. The RV matrix quantifies the pairwise similarity among all data tables (squared Pearson's correlation), irrespective of their rotation or scaling. The RV matrix then undergoes eigenvalue decomposition (EVD). The resulting first component best represents the common pattern across all tables, and its first eigenvector quantifies how similar each table is to this common pattern. 
 
-Let's visualize the results of this EVD on the RV matrix. The Scree plot shows how much variance is explained by each component/dimension. Ideally, there will be one strong component (as is the case with these data) indicating a strong coherence in the general network organization across all observations.
+Let's visualize the results of this EVD on the $R_V$ matrix. The Scree plot shows how much variance is explained by each component/dimension. Ideally, there will be one strong component (as is the case with these data) indicating a strong coherence in the general network organization across all observations.
 
 ```{r}
 PlotScree(ev = covstatis_res$res4Cmat$eigValues, 
           title = "RV-map: Explained Variance per Dimension")
 ```
 
-The factor map of the RV space shows how similar the data tables are to each other.
+The factor map of the $R_V$ space shows how similar the data tables are to each other.
 
 ```{r}
 rv.labels <- createxyLabels.gen(x_axis = 1,
                                 y_axis = 2,
                                 lambda = covstatis_res$res4Cmat$eigValues,
-                                tau = covstatis_res$res4Cmat$tau)
+                                tau = covstatis_res$res4Cmat$tau,
+                                axisName = "Component ")
 ## factor map
 rv.map <- createFactorMap(covstatis_res$res4Cmat$G,
                           title = "The component space of the RV matrix",
-                          col.background = NULL, col.axes = "#42376B",width.axes = 1, alpha.axes = 0.5)
+                          col.background = NULL, 
+                          col.axes = "#42376B",
+                          width.axes = 1, 
+                          alpha.axes = 0.5)
 
 rv.map$zeMap_background + rv.map$zeMap_dots + rv.labels + scatter.theme
 
@@ -201,6 +209,13 @@ The compromise space shows us how regional connectivity values relate to each ot
 network_labels <- unique(atlas_labels$Network)
 network_colors <- unique(atlas_labels$Network_color)
 
+# Get labels for the compromise factor map
+compromise_label <- createxyLabels.gen(x_axis = 1,
+                                y_axis = 2,
+                                lambda = covstatis_res$res4Splus$eigValues,
+                                tau = covstatis_res$res4Splus$tau,
+                                axisName = "Component ")
+
 # To get graphs with axes 1 and 2:
 h_axis <-1 # component to plot on x-axis
 v_axis <-2 # component to plot on y-axis
@@ -211,7 +226,7 @@ compromise_graph_out <- createFactorMap(covstatis_res$res4Splus$F,
                                         col.points = atlas_labels$Network_color,
                                         alpha.points=.6, cex=3,
                                         col.background = NULL, col.axes = "#42376B",width.axes = 1, alpha.axes = 0.5) 
-print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots + scatter.theme)
+print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots + scatter.theme + compromise_label)
 ```
 
 We can also compute the average of all the ROIs (i.e., barycenter) for each _a priori_ network to get a coarser network compromise map.
@@ -226,14 +241,14 @@ compromise_network_graph_out <- createFactorMap(network_mean_F,
                                                 col.points = network_colors, col.labels = network_colors,
                                                 alpha.points=.8, cex=5, text.cex=4, alpha.labels=.8, pch=18,
                                                 col.background = NULL, col.axes = "#42376B",width.axes = 1, alpha.axes = 0.5)
-print(compromise_network_graph_out$zeMap + compromise_network_graph_out$zeMap_dots + scatter.theme)
+print(compromise_network_graph_out$zeMap + compromise_network_graph_out$zeMap_dots + scatter.theme + compromise_label)
 ```
 
 Both the ROI-level and network-level factor maps can be overlaid to show how individuals ROIs cluster around their respective networks, for the whole sample.
 
 ```{r}
 print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots + 
-        compromise_network_graph_out$zeMap_dots + compromise_network_graph_out$zeMap_text + scatter.theme)
+        compromise_network_graph_out$zeMap_dots + compromise_network_graph_out$zeMap_text + scatter.theme + compromise_label)
 ```
 
 ### Step 4: partial factor scores from compromise space
@@ -283,7 +298,7 @@ compromise_pfs <- createPartialFactorScoresMap(
   shape.points = 20)
 
 print(compromise_graph_out$zeMap_background + compromise_graph_out$zeMap_dots +
-  compromise_pfs$mapColByBlocks + ggtitle('Compromise map - Partial factor scores by task design') + scatter.theme)
+  compromise_pfs$mapColByBlocks + ggtitle('Compromise map - Partial factor scores by task design') + scatter.theme + compromise_label)
 ```
 
 That's a very busy plot! Let's clean it up to make things easier to interpret. We can compute the partial factor scores by the mean network compromise. Similar to our ROI plot, for each network, the more spread out the conditions are from the network mean, the more diverse the functional connectivity is across task conditions. Tip: if you have groups, sometimes it is helpful to separate partial factor scores per group and plot them individually (e.g., you may not be able to see a difference if everything is plotted together).
@@ -305,7 +320,7 @@ compromise_pfs_network <- createPartialFactorScoresMap(
   names4Partial = dimnames(F_k_network)[[3]], # 
   size.labels=3.5, size.points = 2,shape.points=20)
 
-print(compromise_network_graph_out$zeMap + compromise_pfs_network$mapColByBlocks + ggtitle('Network level compromise map - Partial factor scores by task design') + scatter.theme)
+print(compromise_network_graph_out$zeMap + compromise_pfs_network$mapColByBlocks + ggtitle('Network level compromise map - Partial factor scores by task design') + scatter.theme + compromise_label)
 ```
 
 ### Step 5: area of the convex hull
