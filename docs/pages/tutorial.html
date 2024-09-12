@@ -231,6 +231,8 @@ window.Quarto = {
 </header>
 
 
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
@@ -253,12 +255,10 @@ window.Quarto = {
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">color =</span> <span class="st">"#42376B"</span>),</span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">color =</span> <span class="st">"#42376B"</span>), <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="setup" class="level2">
-<h2 class="anchored" data-anchor-id="setup">Setup</h2>
-<p>All data used in this tutorial are stored <a href="https://github.com/giuliabaracc/covSTATIS_netneuro/tree/main/Data">here</a>. The “Data” repo contains: 144x3 functional connectivity text files (n=144, 3=task conditions, 0-,1-,2-back), a “participants_ages.csv” file with participants info and an atlas labels file “Schaefer_100parcel_17network_labels.csv”.</p>
 </section>
 <section id="data-info" class="level2">
 <h2 class="anchored" data-anchor-id="data-info">Data info</h2>
+<p>All data used in this tutorial are stored <a href="https://github.com/giuliabaracc/covSTATIS_netneuro/tree/main/Data">here</a>. The “Data” repo contains: 144x3 functional connectivity text files (n=144, 3=task conditions, 0-,1-,2-back), a “participants_ages.csv” file with participants info and an atlas labels file “Schaefer_100parcel_17network_labels.csv”.</p>
 <p>After standard preprocessing (see Rieck et al., 2021 Data in Brief), each individual’s voxel-time series were parcellated, for each task condition, using the standard 100 region-17 network Schaefer atlas (Schaefer et al., 2018 Cerebral Cortex). For each participant and condition, Pearson’s correlations were quantified between region pairs, to ultimately obtain 100x100x3 functional connectivity matrices for each individual.</p>
 </section>
 <section id="read-in-the-data" class="level2">

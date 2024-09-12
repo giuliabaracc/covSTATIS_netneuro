@@ -7,6 +7,8 @@ knitr::opts_chunk$set(message=FALSE, warning=FALSE, tidy.opts=list(width.cutoff=
 
 ```
 
+## Setup
+
 ```{r, echo=TRUE, results='hide', message = 'hide', warning = 'hide'}
 library(tidyr)
 library(dplyr)
@@ -30,11 +32,9 @@ scatter.theme <- theme(axis.text = element_text(size = 8, color = "#42376B"),
           title = element_text(size = 10, color = "#42376B"), plot.title = element_text(hjust = 0.5))
 ```
 
-## Setup
-
-All data used in this tutorial are stored [here](https://github.com/giuliabaracc/covSTATIS_netneuro/tree/main/Data). The "Data" repo contains: 144x3 functional connectivity text files (n=144, 3=task conditions, 0-,1-,2-back), a "participants_ages.csv" file with participants info and an atlas labels file "Schaefer_100parcel_17network_labels.csv". 
-
 ## Data info
+
+All data used in this tutorial are stored [here](https://github.com/giuliabaracc/covSTATIS_netneuro/tree/main/Data). The "Data" repo contains: 144x3 functional connectivity text files (n=144, 3=task conditions, 0-,1-,2-back), a "participants_ages.csv" file with participants info and an atlas labels file "Schaefer_100parcel_17network_labels.csv".
 
 After standard preprocessing (see Rieck et al., 2021 Data in Brief), each individual's voxel-time series were parcellated, for each task condition, using the standard 100 region-17 network Schaefer atlas (Schaefer et al., 2018 Cerebral Cortex). For each participant and condition, Pearson's correlations were quantified between region pairs, to ultimately obtain 100x100x3 functional connectivity matrices for each individual. 
 
