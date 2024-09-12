@@ -8,3 +8,7 @@ In this repo, you'll find data ([`/Data`](https://github.com/giuliabaracc/covSTA
 
 Happy covSTATISing :)
 PS If you have any questions, don't hesitate to reach out!
+
+### Analytics
+
+<iframe width="100%" height="400" src="https://lookerstudio.google.com/embed/reporting/1ec6b33e-a1bd-4f2c-896d-25f4cd05fbc4/page/dhjBE" frameborder="0" style="border:0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" frameborder="0" style="border:0" allowfullscreen></iframe>
